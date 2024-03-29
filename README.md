@@ -1,4 +1,8 @@
-# Faitour (Imposter)
+# Faitour
+
+**fai*tour ('fei ter)**  
+n. Archaic  
+[1300-1350] Middle English - A charlatan or imposter  
 
 Faitour was cloned from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project. Although that project is no longer maintained, you can still reference it for the original version.
 
