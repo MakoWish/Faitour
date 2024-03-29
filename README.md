@@ -1,10 +1,10 @@
 # Faitour (Imposter)
 
-Faitour was cloned from [eightus/Faitour](https://github.com/eightus/Faitour), so I must first give credit to that project. Although that project is no longer maintained, you can still reference it for the original version.
+Faitour was cloned from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project. Although that project is no longer maintained, you can still reference it for the original version.
 
 Faitour has been stripped down to simply the OS emulation capabilities, and I have tried to simplify installation on Ubuntu 22.04. There is a ton of code clean-up that can still be done, but this was intended to be a quick and simple compliment to OpenCanary to more closely emulate different operating systems for NMAP fingerprinting.
 
-Faitour was originally a Honeypot that was designed to imitate any machines Operating System (OS) that is available in the NMAP database. What remains in Faitour is the ability to detect NMAP probes and reply with spoofed OS and service fingerprints.
+Cyder was originally a Honeypot that was designed to imitate any machines Operating System (OS) that is available in the NMAP database. What remains in Faitour is the ability to detect NMAP probes and reply with spoofed OS and service fingerprints.
 
 ## Prerequisites
 
