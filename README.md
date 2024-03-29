@@ -175,6 +175,7 @@ If you would like to contribute to this project, including code changes or confi
 
 * [x] Operating System Spoofing
 * [ ] Code Clean Up of Cyder's Honeypot Functionality
+* [ ] Create additional sample configurations for OS/Service configurations
 
 ## Credits
 
