@@ -48,7 +48,7 @@ Example configurations may be found in:
 
 ### Default Configuration:
 
-The follwoing default configuration will be installed with Faitor. This will emulate a Windows Server 2012 R2 with the basic RPC, SMB, and RDP services that you would find on a typicaly Server 2012 R2 installation. The RPC fingerprints were chosen to match a real-world scan of a Server 2012 R2 box. 
+The follwoing default configuration will be installed with Faitor in `./configuration/host_config.ini`. This will emulate a Windows Server 2012 R2 with the basic RPC, SMB, and RDP services that you would find on a typical Server 2012 R2 installation. The RPC fingerprints were chosen to match a real-world scan of a Server 2012 R2 box. 
 
 _IMPORTANT!_ As with all configurations, including the sample configurations provided, you must update the `interface` and `ip` values to match your device's configuration, or spoofing will not work. 
 
@@ -166,6 +166,10 @@ Logs are stored in `/var/log/faitour` by default. All logs are in `json` format.
 ### Known Issues:
 
 None yet. Please report any issues you encounter.
+
+## Contributing
+
+If you would like to contribute to this project, including code changes or configuration examples, please first open an issue with your idea, then create a pull request that is linked to the issue you created. 
 
 ## TODO
 
