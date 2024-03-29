@@ -1,0 +1,5 @@
+After choosing which configuration to use, copy the sample file up one directory, and rename to `host_config.ini`. 
+
+Example:
+
+`mv ./sample_configs/ms_server_2012_with_mssql/host_config.ini ../host_config.ini`
