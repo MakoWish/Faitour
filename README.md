@@ -4,6 +4,8 @@
 n. Archaic  
 [1300-1350] Middle English - A charlatan or imposter  
 
+# About
+
 Faitour was cloned from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project. Although that project is no longer maintained, you can still reference it for the original version.
 
 Faitour has been stripped down to simply the OS emulation capabilities, and I have tried to simplify installation on Ubuntu 22.04. There is a ton of code clean-up that can still be done, but this was intended to be a quick and simple compliment to OpenCanary to more closely emulate different operating systems for NMAP fingerprinting.
