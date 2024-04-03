@@ -22,18 +22,28 @@ This project has been tested on Ubuntu 22.04 LTS. However, other Operating Syste
 
 _For Ubuntu 16, you must upgrade Python to 3.6._
 
-## Setting Up
+## Installation
 
-### Ubuntu 22.04 LTS
+### Download
+
+I typically install optional software to `/opt`, so I would navigate there first:
+
+`cd /opt`
+
+Clone the repo to your machine:
+
+`sudo git clone https://github.com/MakoWish/Faitour.git`
+
+### Setup Ubuntu 22.04 LTS
 
 A script is provided at `./setup.sh` to install all the required libraries, python modules, and create a SystemD service.
 `sudo ./setup.sh`
 
-### Ubuntu 16.04 LTS
+### Setup Ubuntu 16.04 LTS
 
-By default, Ubuntu 16.04 does not have Python 3.6.You must first install Python 3.6 before running `./setup.sh`, and event then, your mileage may vary.
+By default, Ubuntu 16.04 does not have Python 3.6.You must first install Python 3.6 before running `./setup.sh`, and even then, your mileage may vary.
 
-### Other Linux
+### Setup Other Linux
 
 Ensure that `iptables` and `libnetfilter_queue` are available, as well as the version of Linux is able to install the `libnetfilter-queue-dev`.
 `libnetfilter-queue-dev` is required for Python 3 NetfilterQueue
