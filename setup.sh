@@ -32,10 +32,10 @@ sudo systemctl daemon-reload
 sudo systemctl enable faitour.service
 
 # That should be it!
-printf "\n\nSetup is complete! To finalize the installation:\n"
-printf "  * Update the configuration in /opt/Faitour/configuration/host_config.ini\n"
-printf "    - IMPORTANT! The 'ip' and 'interface' fields must match your host's setup, or spoofing will not work!"
-printf "    - Samples configs may be found in /opt/Faitour/configuration/sample_configs\n"
-printf "  * Start the service\n"
-printf "    - sudo systemctl start faitour.service\n"
-printf "  * Confirm Faitour is working by performing an NMAP scan from another device\n\n"
+printf "\n\n  Setup is complete! To finalize the installation:\n"
+printf "    * Update the configuration in /opt/Faitour/configuration/host_config.ini\n"
+printf "      - IMPORTANT! The 'ip' and 'interface' fields must match your host's setup, or spoofing will not work!\n"
+printf "      - Samples configs may be found in /opt/Faitour/configuration/sample_configs\n"
+printf "    * Start the service\n"
+printf "      - sudo systemctl start faitour.service\n"
+printf "    * Confirm Faitour is working by performing an NMAP scan from another device\n\n"
