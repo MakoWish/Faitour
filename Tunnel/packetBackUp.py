@@ -97,7 +97,7 @@ def rules():
     check_call(['sysctl', 'net.ipv4.conf.all.arp_announce=2'], stdout=DEVNULL, stderr=STDOUT)
     check_call(['sysctl', 'net.ipv4.conf.all.rp_filter=2'], stdout=DEVNULL, stderr=STDOUT)
     check_call(['echo 1 | tee /proc/sys/net/ipv4/ip_forward'], stdout=DEVNULL, stderr=STDOUT, shell=True)
-    check_call(['iptables', '-I', 'INPUT', '-j', 'NFQUEUE', '--queue-num', '2'], stdout=DEVNULL, stderr=STDOUT)
+    check_call(['iptables', '-I', 'INPUT', '-j', 'NFQUEUE', '--queue-balance', '0:3'], stdout=DEVNULL, stderr=STDOUT)
 
 
 def startIntercept():
