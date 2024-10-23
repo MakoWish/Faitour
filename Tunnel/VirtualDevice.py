@@ -19,7 +19,8 @@ class VirtualDevice:
         self.MacVLan = False
 
         if not fingerprint:  # If no OS fingerprint is set, then use default from text file
-            fingerprint = './Cloaked/mini-os.txt'
+            gx.LOGGER.critical('No OS fingerprint has been defined in host_config.ini. Please check your config.')
+            sys.exit(1)
 
         self.name = name  # Set device name
         self.http = True
@@ -66,15 +67,15 @@ def updateDevice(old_ipAddr, new_ipAddr, services=None, fingerprint=None, name=N
     if services:
         virtDevices[old_ipAddr].services = services
         virtDevices[old_ipAddr].cfg.set_service(services)
-        gc.LOG_DEBUG.debug("Updating the services of {}".format(str(old_ipAddr)))
+        gc.LOGGER.debug("Updating the services of {}".format(str(old_ipAddr)))
     if fingerprint:
         virtDevices[old_ipAddr].device = fingerprint
         virtDevices[old_ipAddr].cfg.set_fgrpt(fingerprint)
         virtDevices[old_ipAddr].cfg.save_cfg()  # Save Debug Only For Fingerprint
-        gc.LOG_DEBUG.debug("Updating the fingerprint of {}".format(str(old_ipAddr)))
+        gc.LOGGER.debug("Updating the fingerprint of {}".format(str(old_ipAddr)))
     if name:
         virtDevices[old_ipAddr].name = name
-        gc.LOG_DEBUG.debug("Updating the name of {}".format(str(old_ipAddr)))
+        gc.LOGGER.debug("Updating the name of {}".format(str(old_ipAddr)))
     if macAddr:
         virtDevices[old_ipAddr].macAddr = macAddr
         if old_ipAddr != virtDevices[old_ipAddr].hostIP: # Check if the device is the host machine
@@ -82,7 +83,7 @@ def updateDevice(old_ipAddr, new_ipAddr, services=None, fingerprint=None, name=N
         else:
             #  If host machine
             os.system('sudo ifconfig {} hw ether {}'.format(gc.INTERFACE, virtDevices[old_ipAddr].macAddr))
-        gc.LOG_DEBUG.debug("Updating the Mac Address of {}".format(str(old_ipAddr)))
+        gc.LOGGER.debug("Updating the Mac Address of {}".format(str(old_ipAddr)))
     if new_ipAddr:
         if old_ipAddr != new_ipAddr:
             if old_ipAddr != virtDevices[old_ipAddr].hostIP:
@@ -92,12 +93,12 @@ def updateDevice(old_ipAddr, new_ipAddr, services=None, fingerprint=None, name=N
             virtDevices[new_ipAddr]= virtDevices.pop(old_ipAddr)
             usedIP.remove(old_ipAddr)
             usedIP.append(new_ipAddr)
-            gc.LOG_DEBUG.debug("Updating the ip from {} to {}".format(str(old_ipAddr),str(new_ipAddr)))
+            gc.LOGGER.debug("Updating the ip from {} to {}".format(str(old_ipAddr),str(new_ipAddr)))
 
 
 def addNewDevice(name=None, services=None, network=None, fingerprint=None, ip=None, mac_addr=None):  # Adding new Device
     global macVLANCount
-    print("Adding new device - {}".format(str(ip)))
+    gc.LOGGER.debug("Adding new virtual device - {}".format(str(ip)))
     device = VirtualDevice(name=name, services=services, network=network, fingerprint=fingerprint, ip=ip,VLANCount=macVLANCount,macAddr=mac_addr)
     virtDevices[device.ip] = device  # Key is IP address, Value is the Virtual Device Object
     if device.ip == virtDevices[device.ip].hostIP and not (mac_addr == 'false' or mac_addr is None):
@@ -105,18 +106,18 @@ def addNewDevice(name=None, services=None, network=None, fingerprint=None, ip=No
         os.system('sudo ifconfig {} hw ether {}'.format(gc.INTERFACE, mac_addr))
     usedIP.append(device.ip)  # Stored the IP used by virtual device
     macVLANCount = macVLANCount + 1
-    gc.LOG_DEBUG.debug("Added new device " + str(device.ip))
+    gc.LOGGER.debug("Added new virtual device " + str(device.ip))
 
 
 def deleteDevice(ip=None, name=None):
-    gc.LOG_DEBUG.debug("Deleting device of ".format(str(ip)))
+    gc.LOGGER.debug("Deleting device of ".format(str(ip)))
     device = virtDevices[ip]
     if device.ip != virtDevices[device.ip].hostIP: # check if the ip belongs to the host machine
         try:
             os.system('sudo ifconfig mac{} down'.format(device.VLANCount))
             os.system('sudo ip link del mac{}'.format(device.VLANCount))
         except Exception:
-            gc.LOG_DEBUG.debug("Failed to remove the virtual interface of {}".format(str(ip)))
+            gc.LOGGER.error("Failed to remove the virtual interface of {}".format(str(ip)))
     del virtDevices[ip]
     usedIP.remove(ip)
 
@@ -143,7 +144,6 @@ def initalise():
 
 def destroyTap():
     #  Destroy virtual interface before exiting program
-    gc.LOG_DEBUG.debug("Destroying Virtual Interfaces")
     for i in virtDevices.values():
         #  Check if there is virtual interface before destroying
         if i.MacVLan:
@@ -151,4 +151,4 @@ def destroyTap():
                 os.system('sudo ifconfig mac{} down'.format(i.VLANCount))
                 os.system('sudo ip link del mac{}'.format(i.VLANCount))
             except:
-                gc.LOG_DEBUG.debug("Failed to destroy mac{}".format(i.VLANCount))
+                gc.LOGGER.debug("Failed to destroy mac{}".format(i.VLANCount))

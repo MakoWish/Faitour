@@ -1,8 +1,7 @@
-from vfssh.vfs.FileSystem import FileSystem
-from vfssh.vfs.Command import Command
-from vfssh.vfs.error import VFSError
 import pkgutil
 import inspect
+import logging
+from logging.handlers import RotatingFileHandler
 import logging.handlers
 import configparser
 import os
@@ -11,62 +10,78 @@ from scapy.all import conf
 from Cryptodome.PublicKey import RSA
 
 
-def logger_config(name, addr='127.0.0.1', port=514, method='rsyslog', path=None):
-    log = logging.getLogger(name)
-    log.setLevel(logging.DEBUG)
-    if method == 'rsyslog':
-        handler = logging.handlers.SysLogHandler((addr, port))
-        formatter = logging.Formatter('%(message)s\n')
-    else:
-        if not path.endswith('/'):
-            path += '/'
-        handler = logging.FileHandler(path + name + '.json')
-        formatter = logging.Formatter('%(message)s')
-
-    handler.setFormatter(formatter)
-    log.addHandler(handler)
-    return log
-
-
-def get_plugins():
-    global PLUGIN
-    PLUGIN = dict()
-    imported_package = __import__('vfssh.vfs.command', fromlist=[''])
-    for _, plugin_name, ispkg in pkgutil.iter_modules(imported_package.__path__, imported_package.__name__ + '.'):
-        plugin_module = __import__(plugin_name, fromlist=[''])
-        all_klass = inspect.getmembers(plugin_module, inspect.isclass)
-        for _, cls in all_klass:
-            if issubclass(cls, Command) & (cls is not Command):
-                load = cls()
-                PLUGIN[load.cmd] = load
-
-
-def get_vfs():
-    global VFS, HOST_MACHINE
-    VFS = dict()
+#===============================================================================
+# Configure our logger
+#===============================================================================
+def logger_config(logName, stdout, raw):
+    # Get logger details from host_config.ini
     config = configparser.ConfigParser(interpolation=None)
     config.read(os.path.dirname(os.path.realpath(__file__)) + '/configuration/host_config.ini')
-    config.read(os.path.dirname(os.path.realpath(__file__)) + '/configuration/virtual_config.ini')
-    for k, v in config.items():
-        if k == 'CONFIGURATION' or k == 'DEFAULT':
-            continue
-        ip = config.get(k, 'ip', fallback=None)
-        vfs = config.get(k, 'file_system', fallback=None)
-        if ip is None:
-            raise VFSError.Error('Configuration File Error')
-        VFS[ip] = FileSystem(vfs)
-    HOST_MACHINE = config.get('HOST', 'ip', fallback=None)
+    logDir = config.get('LOGGING', 'logDir', fallback="/var/log/faitour/")
+    logLevel = config.get('LOGGING', 'logLevel', fallback="INFO")
+    logSize = config.getint('LOGGING', 'logSize', fallback=10000000)
+    logCount = config.getint('LOGGING', 'logCount', fallback=10)
+
+    # Create a new logger and set to declared level
+    logger = logging.getLogger(logName)
+    logger.setLevel(logging.getLevelName(logLevel))
+
+    if stdout:
+        # A file handler will be added later, but create a stdout stream logger here
+        stdoutLogger = logging.StreamHandler()
+        stdoutLogger.setFormatter(logging.Formatter('%(name)s (%(levelname)s): %(message)s'))
+        logger.addHandler(stdoutLogger)
+
+    # Note that logger has been configured
+    logger.info('Logging level set to ' + logLevel + '.')
+
+    # Ensure we have write access to our log location
+    if checkLogPath(logger, logDir):
+        # Use a RotatingFileHandler for our file logger (log => log.1 => log.2 => ...)
+        fileLogger = RotatingFileHandler(logDir + logName, maxBytes=logSize, backupCount=logCount)
+        if raw:
+            fileLogger.setFormatter(logging.Formatter('%(message)s'))
+        else:
+            fileLogger.setFormatter(logging.Formatter('%(asctime)s (%(levelname)s): %(message)s'))
+
+        # Note the file we are logging to
+        logger.info('Logging to "' + logDir + logName + '".')
+
+        # Add both file and stdout handlers to the logger
+        logger.addHandler(fileLogger)
+
+    return logger
 
 
-def get_credentials():
-    global CREDENTIALS
-    CREDENTIALS = list()
-    with open(os.path.dirname(os.path.realpath(__file__)) + '/configuration/credentials.txt') as f:
-        for line in f:
-            line = line.strip()
-            CREDENTIALS.append(line.split(':'))
+#===============================================================================
+# Make sure our log file path exists and we have write access
+#===============================================================================
+def checkLogPath(logger, logDir):
+    if os.path.exists(logDir):
+        if os.access(logDir, os.W_OK):
+            logger.info('Log file directory "' + logDir + '" exists and we have write access.')
+            return True
+        else:
+            logger.critical('Log file directory "' + logDir + '" exists, but we do not have write access. Exiting...')
+            exit(1)
+    else:
+        upOneDir = os.path.abspath(os.path.join(os.path.dirname(logDir), '..'))
+        if os.path.exists(upOneDir):
+            if os.access(upOneDir, os.W_OK):
+                os.mkdir(logDir)
+                logger.info('Log file directory "' + logDir + '" has been created.')
+                return True
+            else:
+                logger.critical('"' + logDir + '" does not exist, and we do not have write access to "' + upOneDir + '" to create it. Exiting...')
+                exit(1)
+        else:
+            logger.critical('"' + upOneDir + '" does not exist. Please check your log location settings and try again. Exiting...')
+            exit(1)
 
 
+#===============================================================================
+# Get and validate interface details
+#===============================================================================
 def get_interface():
     global INTERFACE, SOCKET_INTERFACE
     config = configparser.ConfigParser(interpolation=None)
@@ -74,91 +89,37 @@ def get_interface():
     iface_ = config.get('CONFIGURATION', 'interface', fallback='ens33')
 
     try:
+        LOGGER.debug('Getting device interface')
         INTERFACE = iface_
         SOCKET_INTERFACE = conf.L3socket(iface=iface_)
     except OSError:
-        print('NOPE')
-        raise VFSError.Error('Interface Not Found')
+        LOGGER.critical('Interface not found. Please check your host_config.ini')
 
 
-def get_ssh_key():
-    global VFS
-
-    key_path = os.path.dirname(os.path.realpath(__file__)) + '/configuration/key'
-
-    #  Key Folder
-    if not os.path.exists(key_path):
-        os.mkdir(key_path)
-
-    for i in VFS.keys():
-        if not os.path.exists(f'{key_path}/{i}'):
-            os.mkdir(f'{key_path}/{i}')
-
-        if os.path.exists(f'{key_path}/{i}/private.key') and os.path.exists(f'{key_path}/{i}/public.key'):
-            continue
-        key = RSA.generate(2048)
-        with open(f'{key_path}/{i}/private.key', 'wb') as content_file:
-            os.chmod(f'{key_path}/{i}/private.key', 0o600)
-            content_file.write(key.exportKey('PEM'))
-        with open(f'{key_path}/{i}/public.key', 'wb') as content_file:
-            content_file.write(key.publickey().exportKey('OpenSSH'))
-
-
-def start_tcpdump():
-    global INTERFACE
-    global TCPDUMP
-    global LOG_LOCATION
-    pcap_loc = os.path.join(LOG_LOCATION, 'pcap')
-    if not os.path.exists(pcap_loc):
-        os.mkdir(pcap_loc)
-    file_path = os.path.join(pcap_loc, 'capture.pcap')
-    command = f'tcpdump -i {INTERFACE} -C 100 -w {file_path}'
-    TCPDUMP = subprocess.Popen(command, shell=True)
-
-
-def log_location():
-    global LOG_LOCATION
-    config = configparser.ConfigParser(interpolation=None)
-    config.read(os.path.dirname(os.path.realpath(__file__)) + '/configuration/host_config.ini')
-    log_path = config.get('CONFIGURATION', 'log_path', fallback='/var/log/faitour')
-    if not os.path.exists(log_path):
-        os.mkdir(log_path)
-    return log_path
-
-
+#===============================================================================
+# Verify Faitour is running as root/sudo
+#===============================================================================
 if os.geteuid() != 0:
-    print('You need to have root privileges to run Faitour')
+    LOGGER.critical('You need to have root privileges to run Faitour')
     exit(0)
 
-"""
-Usage of "gconstant":
-    - import gconstant as gc
 
-***********************************************
-Please do not use "from gconstant import xxx"
-This will cause gconstant to be reloaded, and
-the variables will be None
-***********************************************
-
-Dynamic/Static Global Constant Should Be Placed Below
-"""
+#===============================================================================
+# Define loggers
+#===============================================================================
+# logger_config(logName, stdout, raw)
+LOGGER = logger_config('faitour', True, False)
+PACKET_LOGGER = logger_config('packets.json', False, True)
 
 
-LOG_LOCATION = log_location()
-LOG_FAITOUR = logger_config('faitour', method='local', path=LOG_LOCATION)
-LOG_PACKET = logger_config('packet', method='local', path=LOG_LOCATION)
-LOG_DEBUG = logger_config('debug', method='local', path=LOG_LOCATION)
-
+#===============================================================================
+# Define global variables to be used by module
+#===============================================================================
 INTERFACE = None
 SOCKET_INTERFACE = None
-TCPDUMP = None
-HOST_MACHINE = None
-VFS = None
-CREDENTIALS = None
-PLUGIN = None
 
+
+#===============================================================================
+# Get interface details from fuction
+#===============================================================================
 get_interface()
-get_credentials()
-get_plugins()
-get_vfs()
-get_ssh_key()

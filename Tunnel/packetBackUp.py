@@ -41,11 +41,10 @@ def handle_packet(nfq_packet):
             port = 0
         try:
             parse_data = base64.encodebytes(nfq_packet.get_payload()).decode('ascii')
-            data = {'timestamp': time.time(), 'dst_ip': pkt[IP].dst, 'host_os': device_name, 'src_ip': pkt[IP].src,
-                    'services': port, 'packet': parse_data}
-            gc.LOG_PACKET.info(json.dumps(data))
+            data = {'timestamp': time.time(), 'dst_ip': pkt[IP].dst, 'host_os': device_name, 'src_ip': pkt[IP].src, 'services': port, 'packet': parse_data}
+            gc.PACKET_LOGGER.info(json.dumps(data))
         except Exception as e:
-            print('Why?!' + str(e))
+            gc.LOGGER.error('Error parsing encoded bytes: ' + str(e))
 
     else:
         forward_packet(nfq_packet)  # If packet not intended for the virtual devices, then forward it
@@ -77,7 +76,6 @@ def handle_packet(nfq_packet):
 
 def flush_tables():
     #  Flush IP tables after exiting program
-    gc.LOG_DEBUG.debug("Flushing Table")
     check_call(['iptables', '-D', 'INPUT', '-j', 'NFQUEUE', '--queue-num', '2'], stdout=DEVNULL, stderr=STDOUT)
 
 
@@ -93,11 +91,16 @@ def drop_packet(nfq_packet):
 
 def rules():
     #  Rules to be added to IP tables
+    gc.LOGGER.info('Setting iptables rule "arp_ignore=1"')
     check_call(['sysctl', 'net.ipv4.conf.all.arp_ignore=1'], stdout=DEVNULL, stderr=STDOUT)
+    gc.LOGGER.info('Setting iptables rule "arp_announce=2"')
     check_call(['sysctl', 'net.ipv4.conf.all.arp_announce=2'], stdout=DEVNULL, stderr=STDOUT)
+    gc.LOGGER.info('Setting iptables rule "rp_filter=2"')
     check_call(['sysctl', 'net.ipv4.conf.all.rp_filter=2'], stdout=DEVNULL, stderr=STDOUT)
+    gc.LOGGER.info('Setting iptables rule "ip_forward"')
     check_call(['echo 1 | tee /proc/sys/net/ipv4/ip_forward'], stdout=DEVNULL, stderr=STDOUT, shell=True)
-    check_call(['iptables', '-I', 'INPUT', '-j', 'NFQUEUE', '--queue-balance', '0:3'], stdout=DEVNULL, stderr=STDOUT)
+    gc.LOGGER.info('Adding NFQUEUE to iptables"')
+    check_call(['iptables', '-I', 'INPUT', '-j', 'NFQUEUE', '--queue-num', '2'], stdout=DEVNULL, stderr=STDOUT)
 
 
 def startIntercept():
@@ -108,21 +111,25 @@ def startIntercept():
     s = socket.fromfd(nfqueue.get_fd(), socket.AF_INET, socket.SOCK_STREAM)
     try:
         #  Start nfqueue
+        gc.LOGGER.info('Starting NFQUEUE socket')
         nfqueue.run_socket(s)
     except KeyboardInterrupt:
+        gc.LOGGER.info('Attempting to cleanly shutdown Faitour due to keyboard interrupt')
+        gc.LOGGER.info('Flushing iptables')
         flush_tables()
+        gc.LOGGER.info('Unbind NFQUEUE')
         nfqueue.unbind()
-        destroyTap()
-        gc.TCPDUMP.terminate()
-        gc.LOG_DEBUG.debug("Exiting Program (Keyboard Interrupt)")
-        gc.LOG_DEBUG.debug('#'*50)
-        sys.exit()
-    except SystemError:
-        gc.LOG_DEBUG.debug("Failed to Start NFQueue (System Error)")
-        flush_tables()
-        nfqueue.unbind()
+        gc.LOGGER.info('Destroying virtual interface')
         destroyTap()
         sys.exit()
     except:
-        gc.LOG_DEBUG.debug("Failed to Start NFQueue (Unknown Error Encountered)")
+        gc.LOGGER.info('Attempting to cleanly shutdown Faitour due to unknown exception')
+        gc.LOGGER.info('Flushing iptables')
+        flush_tables()
+        gc.LOGGER.info('Unbind NFQUEUE')
+        nfqueue.unbind()
+        gc.LOGGER.info('Destroying virtual interface')
+        destroyTap()
         sys.exit()
+    finally:
+        gc.LOGGER.info('Faitour has been stopped.')
