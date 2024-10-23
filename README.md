@@ -14,7 +14,7 @@ Cyder was originally a Honeypot that was designed to imitate any Operating Syste
 
 ## Prerequisites
 
-This project has been tested on Ubuntu 22.04 LTS. However, other Operating System **_MAY_** work if they have the following libraries:
+This project has been tested on Ubuntu 22.04 LTS. However, other operating systems **_may_** work if they have the following libraries:
 
 - iptables
 - libnetfilter_queue
