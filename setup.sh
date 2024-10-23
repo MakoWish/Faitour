@@ -8,7 +8,7 @@ CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 sudo add-apt-repository -y ppa:deadsnakes/ppa
 sudo apt update
 sudo apt-get install -y python3 build-essential python3-dev libnetfilter-queue-dev python3-pip net-tools tmux libnfnetlink-dev libnetfilter-queue-dev python3-netaddr
-sudo pip3 install -r $CURRENT_DIR/requirements.txt --break-system-packages
+sudo pip3 install -r $CURRENT_DIR/requirements.txt
 sudo pip3 install --upgrade service_identity
 cd /usr/lib/x86_64-linux-gnu/
 sudo ln -s -f libc.a liblibc.a
