@@ -18,7 +18,7 @@ class VirtualDevice:
         self.VLANCount = VLANCount
         self.MacVLan = False
 
-        if not fingerprint:  # If no OS fingerprint is set, then use default from text file
+        if not fingerprint:  # If no OS fingerprint is set, then exit application
             gx.LOGGER.critical('No OS fingerprint has been defined in host_config.ini. Please check your config.')
             sys.exit(1)
 
