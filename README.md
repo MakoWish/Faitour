@@ -34,27 +34,21 @@ Clone the repo to your machine:
 
 `sudo git clone https://github.com/MakoWish/Faitour.git`
 
-### Setup Ubuntu 24.04 LTS
+### Setup
+
+#### Ubuntu 22.04 LTS
+
+A script is provided at `./setup.sh` to install all the required libraries, python modules, and create a SystemD service.
+
+`sudo ./setup.sh`
+
+#### Other Linux Flavors
 
 I have unfortunately been unable to get this working on Ubuntu 24.04 due to Python packages that are unavailable. If you are able to get Faitour working on Ubuntu 24.04, please let me know so I can make some changes here.
 
-### Setup Ubuntu 22.04 LTS
+No other operating systems have been tested.
 
-A script is provided at `./setup.sh` to install all the required libraries, python modules, and create a SystemD service.
-`sudo ./setup.sh`
-
-### Setup Ubuntu 16.04 LTS
-
-By default, Ubuntu 16.04 does not have Python 3.6.You must first install Python 3.6 before running `./setup.sh`, and even then, your mileage may vary.
-
-### Setup Other Linux
-
-Ensure that `iptables` and `libnetfilter_queue` are available, as well as the version of Linux is able to install the `libnetfilter-queue-dev`.
-`libnetfilter-queue-dev` is required for Python 3 NetfilterQueue
-Python 3.6 and above is required for Asyncio work.
-_No other flavors of Linux have been tested._
-
-## Configuration
+### Configuration
 
 After installing, you should change the configurations before starting the service.
 
@@ -82,7 +76,7 @@ mac = 00:11:22:33:44:55
 
 [LOGGING]
 # DEBUG, INFO, WARNING, ERROR
-logLevel = DEBUG
+logLevel = INFO
 logDir = /var/log/faitour/
 logSize = 10000000
 logCount = 10
