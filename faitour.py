@@ -65,5 +65,5 @@ if __name__ == '__main__':
 	except Exception as e:
 		gc.LOGGER.error(f'{e}')
 	finally:
-		gc.LOGGER.info('Faitour has been stopped.')
+		gc.LOGGER.info('Faitour has been stopped!')
 		os._exit(0)

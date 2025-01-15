@@ -111,16 +111,16 @@ def drop_packet(nfq_packet):
 
 def rules():
 	#  Rules to be added to IP tables
-	gc.LOGGER.info('Setting iptables rule "arp_ignore=1"...')
 	check_call(['sysctl', 'net.ipv4.conf.all.arp_ignore=1'], stdout=DEVNULL, stderr=STDOUT)
-	gc.LOGGER.info('Setting iptables rule "arp_announce=2"...')
+	gc.LOGGER.info('iptables rule "arp_ignore=1" has been set.')
 	check_call(['sysctl', 'net.ipv4.conf.all.arp_announce=2'], stdout=DEVNULL, stderr=STDOUT)
-	gc.LOGGER.info('Setting iptables rule "rp_filter=2"...')
+	gc.LOGGER.info('iptables rule "arp_announce=2" has been set.')
 	check_call(['sysctl', 'net.ipv4.conf.all.rp_filter=2'], stdout=DEVNULL, stderr=STDOUT)
-	gc.LOGGER.info('Setting iptables rule "ip_forward"...')
+	gc.LOGGER.info('iptables rule "rp_filter=2" has been set.')
 	check_call(['echo 1 | tee /proc/sys/net/ipv4/ip_forward'], stdout=DEVNULL, stderr=STDOUT, shell=True)
-	gc.LOGGER.info('Adding NFQUEUE to iptables...')
+	gc.LOGGER.info('iptables rule "ip_forward" has been set.')
 	check_call(['iptables', '-I', 'INPUT', '-j', 'NFQUEUE', '--queue-num', '2'], stdout=DEVNULL, stderr=STDOUT)
+	gc.LOGGER.info('NFQUEUE has been added to iptables.')
 
 
 async def monitor_nfqueue_queue_size(nfqueue, interval=1):
@@ -190,10 +190,15 @@ def startIntercept():
 		# Clean up resources
 		gc.LOGGER.info('Flushing iptables...')
 		flush_tables()
+		gc.LOGGER.info('iptables have been flushed.')
+
 		gc.LOGGER.info('Unbinding NFQUEUE...')
 		nfqueue.unbind()
+		gc.LOGGER.info('NFQUEUE has been unbound.')
+
 		gc.LOGGER.info('Destroying virtual interface...')
 		destroyTap()
+		gc.LOGGER.info('Virtual interface has been destroyed.')
 
 		# Cancel the monitoring task if it is running
 		if monitor_task:
@@ -208,6 +213,6 @@ def startIntercept():
 		gc.LOGGER.info('Terminating asyncio loop...')
 		loop.stop()
 		loop.close()
-		gc.LOGGER.info('Asyncio loop terminated')
+		gc.LOGGER.info('Asyncio loop terminated.')
 
 		return 0
