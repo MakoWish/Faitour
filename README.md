@@ -138,7 +138,7 @@ Be sure to run an NMAP scan from another machine to ensure that everything is wo
 
 ## Logging
 
-Logs are stored in `/var/log/faitour` by default, but the path may be modified in `host_config.ini`. Logging it written to both stdout (systemd journal) and text file. Optionally enable packet logging in `host_config.ini`.
+Logs are stored in `/var/log/faitour` by default, but the path may be modified in `host_config.ini`. Logging is written to both stdout (systemd journal) and text file. Optionally enable packet logging in `host_config.ini`.
 
 **faitour**
 
