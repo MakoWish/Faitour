@@ -34,6 +34,10 @@ Clone the repo to your machine:
 
 `sudo git clone https://github.com/MakoWish/Faitour.git`
 
+### Setup Ubuntu 24.04 LTS
+
+I have unfortunately been unable to get this working on Ubuntu 24.04 due to Python packages that are unavailable. If you are able to get Faitour working on Ubuntu 24.04, please let me know so I can make some changes here.
+
 ### Setup Ubuntu 22.04 LTS
 
 A script is provided at `./setup.sh` to install all the required libraries, python modules, and create a SystemD service.
