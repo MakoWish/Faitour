@@ -111,19 +111,19 @@ def drop_packet(nfq_packet):
 
 def rules():
 	#  Rules to be added to IP tables
-	gc.LOGGER.info('Setting iptables rule "arp_ignore=1"')
+	gc.LOGGER.info('Setting iptables rule "arp_ignore=1"...')
 	check_call(['sysctl', 'net.ipv4.conf.all.arp_ignore=1'], stdout=DEVNULL, stderr=STDOUT)
-	gc.LOGGER.info('Setting iptables rule "arp_announce=2"')
+	gc.LOGGER.info('Setting iptables rule "arp_announce=2"...')
 	check_call(['sysctl', 'net.ipv4.conf.all.arp_announce=2'], stdout=DEVNULL, stderr=STDOUT)
-	gc.LOGGER.info('Setting iptables rule "rp_filter=2"')
+	gc.LOGGER.info('Setting iptables rule "rp_filter=2"...')
 	check_call(['sysctl', 'net.ipv4.conf.all.rp_filter=2'], stdout=DEVNULL, stderr=STDOUT)
-	gc.LOGGER.info('Setting iptables rule "ip_forward"')
+	gc.LOGGER.info('Setting iptables rule "ip_forward"...')
 	check_call(['echo 1 | tee /proc/sys/net/ipv4/ip_forward'], stdout=DEVNULL, stderr=STDOUT, shell=True)
-	gc.LOGGER.info('Adding NFQUEUE to iptables"')
+	gc.LOGGER.info('Adding NFQUEUE to iptables...')
 	check_call(['iptables', '-I', 'INPUT', '-j', 'NFQUEUE', '--queue-num', '2'], stdout=DEVNULL, stderr=STDOUT)
 
 
-async def monitor_nfqueue_queue_size(interval=1):
+async def monitor_nfqueue_queue_size(nfqueue, interval=1):
 	"""
 	Monitors the queue size of nfqueue by reading the third column
 	of /proc/net/netfilter/nfnetlink_queue. Runs asynchronously at the specified interval.
@@ -146,7 +146,8 @@ async def monitor_nfqueue_queue_size(interval=1):
 
 							# Unbind and re-bind the NFQUEUE
 							nfqueue.unbind()
-							nfqueue.bind(2, handle_packet, max_len=10240)
+							startIntercept()
+							#nfqueue.bind(2, handle_packet, max_len=10240)
 							gc.LOGGER.info("NFQUEUE re-bound due to queue size exceeding threshold.")
 
 					else:
@@ -173,10 +174,10 @@ def startIntercept():
 
 	try:
 		# Schedule the queue size monitoring task
-		monitor_task = loop.create_task(monitor_nfqueue_queue_size(interval=2))
+		monitor_task = loop.create_task(monitor_nfqueue_queue_size(nfqueue, interval=2))
 
 		# Run the main nfqueue socket in the asyncio event loop
-		gc.LOGGER.info('Starting NFQUEUE socket')
+		gc.LOGGER.info('NFQUEUE socket is listening...')
 		loop.run_in_executor(None, nfqueue.run_socket, s)
 		loop.run_forever()
 
@@ -185,29 +186,28 @@ def startIntercept():
 	except Exception as e:
 		gc.LOGGER.error(f"Exception caught: {e}")
 		gc.LOGGER.error('Attempting to cleanly shutdown Faitour due to unknown exception')
-
 	finally:
 		# Clean up resources
-		gc.LOGGER.info('Flushing iptables')
+		gc.LOGGER.info('Flushing iptables...')
 		flush_tables()
-		gc.LOGGER.info('Unbind NFQUEUE')
+		gc.LOGGER.info('Unbinding NFQUEUE...')
 		nfqueue.unbind()
-		gc.LOGGER.info('Destroying virtual interface')
+		gc.LOGGER.info('Destroying virtual interface...')
 		destroyTap()
 
 		# Cancel the monitoring task if it is running
 		if monitor_task:
-			gc.LOGGER.info("Cancelling monitor task")
+			gc.LOGGER.info("Terminating NFQUEUE monitor task...")
 			monitor_task.cancel()
 			try:
 				loop.run_until_complete(monitor_task)
 			except asyncio.CancelledError:
-				gc.LOGGER.info("Monitor task cancelled")
+				gc.LOGGER.info("NFQUEUE monitor task terminated.")
 
 		# Stop the asyncio event loop
+		gc.LOGGER.info('Terminating asyncio loop...')
 		loop.stop()
 		loop.close()
+		gc.LOGGER.info('Asyncio loop terminated')
 
-		gc.LOGGER.info('Faitour has been stopped.')
-		os._exit()
-
+		return 0
