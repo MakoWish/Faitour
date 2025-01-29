@@ -20,7 +20,7 @@ This project was built on, and has been tested on, Ubuntu 24.04 LTS. Other opera
 
 ### Download
 
-I typically install optional software to `/opt`, so I would navigate there first, then clone the project.
+The ultimate location is up to you, but I typically install optional software to `/opt`, so I would navigate there first, then clone the project.
 
 ```bash
 cd /opt
@@ -45,7 +45,7 @@ After installing, you will need to change the configurations before starting the
 
 You **_must_** change the default settings under `network`, or Faitour will fail to start. Ensure the adapter details match what is on your host.
 
-Optionally, configure logging to fit your needs. By default, both file and stdout logging are enabled, but you may turn either or both off. If running as a `systemd` service, the stdout logging will be written to the system journal.
+Optionally, configure logging to fit your needs. By default, both file and stdout logging are enabled, but you may turn either or both off. If running as a `systemd` service (default), the stdout logging will be written to the systemd journal.
 
 Here is a snippet from the default `config.yml`:
 
@@ -73,7 +73,7 @@ logging:
 
 #### Operating System and Services
 
-Beyond the basic network and logging configuration, you will also see details for the operating system and service fingerprints in your config file. By default, the operating system is set to Microsoft Windows Server 2008 R2, and some basic Windows services are enabled. Enable or disable services as you would like to suit your needs
+Beyond the basic network and logging configuration, you will also see details for the operating system and emulated services in your config file. By default, the operating system is set to Microsoft Windows Server 2008 R2, and some basic services are enabled (FTP, Telnet, HTTP, HTTPS). Enable or disable services as you would like to suit your needs
 
 If you would like to change fingerprints, please reference the NMAP fingerprints databases:
 
