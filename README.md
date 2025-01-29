@@ -111,7 +111,7 @@ Once Faitour has been started, be sure to run an NMAP scan from another machine 
 
 ## Questions and Discussions
 
-If you have any questions about installation, or would just like to discuss the project, please start a [discussion](./discussions) to get the conversation going.
+If you have any questions about installation, or would just like to discuss the project, please start a [discussion](../../discussions) to get the conversation going.
 
 ## Contributing
 
