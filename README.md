@@ -2,23 +2,19 @@
 
 **fai*tour ('fei ter)**  
 n. Archaic  
-[1300-1350] Middle English - A charlatan or imposter  
+[1300-1350] Middle English - A charlatan or imposter
+
+![Faitour 2](logo_wide.png){width="100%"}
 
 ## About
 
-Faitour 2.0 is a complete rewrite of [MakoWish/Faitour](https://github.com/MakoWish/Faitour). which was originally forked from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project for the inspiration.
+Faitour 2 is a complete rewrite of [MakoWish/Faitour](https://github.com/MakoWish/Faitour). which was originally forked from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project for the inspiration. The issue with the original Faitour was that packets to any real services would be intercepted and not properly forwarded, so the services were rendered useless. This defeated the purpose of working alongside OpenCanary. For this reason, I decide to start from scratch and try to create my own honeypot with some fully-functional services. 
 
-The idea behind this project is to intercept network packets destined for user-specified ports. If the packets appear to be NMAP fingerprinting attempts, a spoofed response is returned in an attempt to appear as a different operation system or service version. 
+The idea behind this project was to not only spoof services to NMAP scans, but also log all access attempts in a format that follows the Elastic Common Schema. This will make parsing the logs much easier for ingestion into Elasticsearch. Once I feel this project has matured a bit more, I will work on an Elastic Agent integration to take all the work out of ingesting these logs, as well as creating Elastic Security alerts based on observed activity. 
 
-In this rewrite, I started from the ground up with much better logging, packet handling, and compatibility with Ubuntu 24.04. 
+## Supported Operating Systems
 
-## Prerequisites
-
-This project was built on, and has been tested on, Ubuntu 24.04 LTS. Other operating systems **_may_** work if they have the following packages/libraries:
-
-- iptables
-- libnetfilter_queue
-- Python 3.6+
+This project was built on, and has been tested on, Ubuntu 24.04 LTS. Other operating systems **_may_** work , but I have not tested any others.
 
 ## Installation
 
