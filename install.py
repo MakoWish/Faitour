@@ -2,9 +2,6 @@
 
 import os
 import sys
-import yaml
-import socket
-import psutil
 import subprocess
 
 
@@ -38,7 +35,7 @@ def install_apt_packages():
 		subprocess.run(["apt", "update"], check=True)
 		
 		log("Installing apt packages...")
-		subprocess.run(["apt", "install", "-y"] + apt_packages, check=True)
+		subprocess.run(["apt", "install", "-y"] + apt_packages, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		log("Apt packages installed successfully.")
 	except subprocess.CalledProcessError:
 		log("Failed to install apt packages.", "ERROR")
@@ -55,7 +52,7 @@ def install_pip_packages():
 	]
 	try:
 		log("Installing pip packages...")
-		subprocess.run(["pip3", "install", "--break-system-packages"] + pip_packages, check=True)
+		subprocess.run(["pip3", "install", "--break-system-packages"] + pip_packages, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		log("Pip packages installed successfully.")
 	except subprocess.CalledProcessError:
 		log("Failed to install pip packages.", "ERROR")
@@ -86,39 +83,17 @@ WantedBy=multi-user.target
 
 		log("Reloading systemd daemon...")
 		subprocess.run(["systemctl", "daemon-reload"], check=True)
-
-		log("Enabling and starting the service...")
-		#subprocess.run(["systemctl", "enable", "faitour.service"], check=True)
-		#subprocess.run(["systemctl", "start", "faitour.service"], check=True)
-		log("Systemd service created and started successfully.")
 	except Exception as e:
 		log(f"Failed to create or start systemd service: {e}", "ERROR")
 		sys.exit(1)
 
 
-# Attempt to retrieve the primary network adapter details
-def get_primary_network_adapter():
-	log("Attempting to get network adapter details...")
-	for interface, addrs in psutil.net_if_addrs().items():
-		ip = None
-		mac = None
-
-		# Skip loopback interface
-		if interface == "lo" or interface.startswith("lo"):
-			continue
-
-		# Check each address type
-		for addr in addrs:
-			if addr.family == socket.AF_INET:  # IPv4
-				ip = addr.address
-			elif addr.family == psutil.AF_LINK:  # MAC address
-				mac = addr.address
-
-		# Return only if both IP and MAC are valid
-		if ip and mac:
-			return {"name": interface, "ip": ip, "mac": mac}
-
-	return None
+# Function to enable and start the service
+def enable_and_start():
+	log("Enabling and starting the service...")
+	subprocess.run(["systemctl", "enable", "faitour.service"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+	subprocess.run(["systemctl", "start", "faitour.service"], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+	log("Systemd service created and started.")
 
 
 # Prompt a yes/no question with a configurable default.
@@ -140,33 +115,6 @@ def prompt_yes_no(question: str, default: bool = True) -> bool:
 			print("Please enter 'y' or 'n' (or press Enter for the default).")
 
 
-# Update YAML file with primary network adapter info.
-def update_yaml_with_adapter_info(adapter_info):
-	# Load existing YAML data or create a new structure
-	config_data = {}
-	if os.path.exists("./config.yml"):
-		with open(yaml_file, "r") as file:
-			config_data = yaml.safe_load(file) or {}
-
-	# Update the relevant fields
-	config_data["network"] = {
-		"adapter": {
-			"name": adapter_info["name"],
-			"ip": adapter_info["ip"],
-			"mac": adapter_info["mac"],
-		}
-	}
-
-	# Write back to the YAML file
-	with open(yaml_file, "w") as file:
-		yaml.dump(config_data, file)
-
-	log("Updated ./config.yml with adapter information:")
-	log(f"Name: {adapter_info['name']}")
-	log(f"IP: {adapter_info['ip']}")
-	log(f"MAC: {adapter_info['mac']}")
-
-
 # Main routine
 def main():
 	check_root()
@@ -174,20 +122,8 @@ def main():
 	install_pip_packages()
 	create_systemd_service()
 
-	# Try to automatically set network details
-	adapter = get_primary_network_adapter()
-	if not adapter:
-		log("No active non-loopback network adapters found.", "ERROR")
-		log("You will need to set your network details in `config.yml` manually.", "ERROR")
-	else:
-		log("Network adapter found:\n")
-		print(f"\tAdapter Name: {adapter['name']}")
-		print(f"\tIP Address: {adapter['ip']}")
-		print(f"\tMAC Address: {adapter['mac']}\n")
-		if prompt_yes_no("Would you like to use these settings?", default=True):
-			print("Set adapter details!")
-
-	log("Installation complete. Exiting...")
+	log("Installation complete.")
+	log("Be sure to update your network settings in './config.yml'")
 
 
 # Entry point
