@@ -8,7 +8,7 @@ n. Archaic
 
 ## About
 
-Faitour 2 is a complete rewrite of [MakoWish/Faitour](https://github.com/MakoWish/Faitour). which was originally forked from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project for the inspiration. The issue with the original Faitour was that packets to any real services would be intercepted and not properly forwarded, so the services were rendered useless. This defeated the purpose of working alongside OpenCanary. For this reason, I decide to start from scratch and try to create my own honeypot with some fully-functional services. 
+Faitour 2 is a complete rewrite of [MakoWish/Faitour](https://github.com/MakoWish/Faitour). which was originally forked from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project for the inspiration. The issue with the original Faitour was that packets to any real services would be intercepted and not properly forwarded, so the services were rendered useless. This defeated the purpose of working alongside OpenCanary as it blocked all access to OpenCanary's enabled services. For this reason, I decide to start from scratch and try to create my own honeypot with some fully-functional services. 
 
 The idea behind this project was to not only spoof services to NMAP scans, but also log all access attempts in a format that follows the Elastic Common Schema. This will make parsing the logs much easier for ingestion into Elasticsearch. Once I feel this project has matured a bit more, I will work on an Elastic Agent integration to take all the work out of ingesting these logs, as well as creating Elastic Security alerts based on observed activity. 
 
@@ -73,9 +73,9 @@ logging:
 
 #### Operating System and Services
 
-Beyond the basic network and logging configuration, you will also see details for the operating system and emulated services in your config file. By default, the operating system is set to Microsoft Windows Server 2008 R2, and some basic services are enabled (FTP, Telnet, HTTP, HTTPS). Enable or disable services as you would like to suit your needs
+Beyond the basic network and logging configuration, you will also see details for the operating system and emulated services in your config file. By default, the operating system is set to Microsoft Windows Server 2008 R2, and some basic services are enabled (FTP, Telnet, HTTP, HTTPS). Enable or disable services as you would like to suit your needs.
 
-If you would like to change fingerprints, please reference the NMAP fingerprints databases:
+If you would like to change fingerprints, please reference the NMAP fingerprints databases. Note that the majority of these fingerprints contain regex patterns. You should replace those regex patterns with data that would not only be matched by those patterns, but also matches the service you are attempting to spoof. 
 
 Operating System Fingerprints can be found at: https://svn.nmap.org/nmap/nmap-os-db
 
@@ -86,9 +86,15 @@ Service Fingerprints can be found at: https://svn.nmap.org/nmap/nmap-service-pro
 To start Faitour as systemd service, enable and start the service. You may optionally follow the journal logs to ensure the service started without issue:
 
 ```bash
+# Enable and start the service
 sudo systemctl enable faitour.service
 sudo systemctl start faitour.service
+
+# Optionally follow the journal logs
 sudo journalctl -fu faitour.service
+
+# Or tail the file logs
+sudo tail -f /var/log/faitour/faitour
 ```
 
 To start Faitour manually, simply execute with Python as root.
@@ -105,4 +111,10 @@ Once Faitour has been started, be sure to run an NMAP scan from another machine 
 
 ## Contributing
 
-If you would like to contribute to this project, please first open an issue with your idea, then create a pull request that is linked to the issue you created. 
+If you would like to contribute to this project, please first open an issue with your idea so we can discuss it.
+
+## To Do
+
+* Change services like RPC, RDP, MSSQL, MySQL, and PostgreSQL to be less of emulators and more just fingerprint spoofers.
+* Create and submit Elastic Agent integration for official release.
+* Create sample Elastic Security detection rules for alerting on honeypot triggers.
