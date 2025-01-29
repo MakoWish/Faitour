@@ -71,11 +71,13 @@ logging:
     count: 10
 ```
 
-#### Operating System and Services
+#### Operating System Fingerprint
 
-Beyond the basic network and logging configuration, you will also see details for the operating system and emulated services in your config file. By default, the operating system is set to Microsoft Windows Server 2008 R2, and some basic services are enabled (FTP, Telnet, HTTP, HTTPS). Enable or disable services as you would like to suit your needs.
+Beyond the basic network and logging configuration, you will also see details for the operating system fingerprint in your config file. By default, the operating system is set to Microsoft Windows Server 2008 R2. If you would like to change fingerprint, please reference the NMAP fingerprints databases. Note that the majority of these fingerprints contain regex patterns. You should replace those regex patterns with data that would not only be matched by those patterns, but also matches the service you are attempting to spoof. 
 
-If you would like to change fingerprints, please reference the NMAP fingerprints databases. Note that the majority of these fingerprints contain regex patterns. You should replace those regex patterns with data that would not only be matched by those patterns, but also matches the service you are attempting to spoof. 
+#### Service Emulators
+
+Several services are emulated that allow real interaction like FTP, Telnet, SSH, and HTTP/S (these are enabled by default) as well as others that you may enable. These services allow you to customize the port they run on, usernames:passwords that grant access to those services, and more. Many of these services provide file system access that you may customize to your liking. This may be a custom web page or pages in `./emulators/web_root`, or files in `./emulators/ftp_root` or `./emulators/telnet_root`. For HTTP(S), it is critical to retain the form attributes with username and password. 
 
 Operating System Fingerprints can be found at: https://svn.nmap.org/nmap/nmap-os-db
 
