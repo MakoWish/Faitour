@@ -124,3 +124,7 @@ If you would like to contribute to this project, please first open an issue with
 * Change services like RPC, RDP, MSSQL, MySQL, and PostgreSQL to be less of emulators and more just fingerprint spoofers.
 * Create and submit Elastic Agent integration for official release.
 * Create sample Elastic Security detection rules for alerting on honeypot triggers.
+
+## Donations
+
+Do you like this project? Consider a small donation. I currently only have Patreon, but the link may be found in [FUNDING.yml](.github/FUNDING.yml)
