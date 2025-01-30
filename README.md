@@ -113,7 +113,7 @@ Once Faitour has been started, be sure to run an NMAP scan from another machine 
 
 ## Elastic Integration
 
-I have included some resources within the `elastic` folder to help integrate your Faitour logs with Elastic for monitoring and alerting honeypot activity. Please review the Elastic [README.md](./elastic/README.md) for details on installing those resources.
+I have included some resources within the `elastic` folder to help integrate your Faitour logs with Elastic for monitoring and alerting on honeypot activity. Please review the Elastic [README.md](./elastic/README.md) for details on installing those resources.
 
 ## Questions and Discussions
 
