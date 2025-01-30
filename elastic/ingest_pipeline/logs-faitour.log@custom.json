@@ -1,0 +1,196 @@
+{
+  "description": "Process events from Faitour honeypot",
+  "processors": [
+    {
+      "json": {
+        "description": "Parse message to faitour",
+        "tag": "json_message",
+        "field": "message",
+        "target_field": "faitour"
+      }
+    },
+    {
+      "date": {
+        "description": "Parse ISO8601 timestamp to @timestamp",
+        "tag": "date_faitour_timestamp",
+        "if": "ctx.faitour?.timestamp != null",
+        "field": "faitour.timestamp",
+        "target_field": "timestamp",
+        "formats": [
+          "ISO8601"
+        ],
+        "ignore_failure": true
+      }
+    },
+    {
+      "rename": {
+        "description": "Rename faitour.destination to destination",
+        "tag": "rename_faitour_destination",
+        "if": "ctx.faitour?.destination != null",
+        "field": "faitour.destination",
+        "target_field": "destination",
+        "override": true,
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "rename": {
+        "description": "Rename faitour.event to event",
+        "tag": "rename_faitour_event",
+        "if": "ctx.faitour?.event != null",
+        "field": "faitour.event",
+        "target_field": "event",
+        "override": true,
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "set": {
+        "description": "Set time of event ingestion",
+        "tag": "set_event_ingested",
+        "field": "event.ingested",
+        "copy_from": "_ingest.timestamp",
+        "ignore_failure": true
+      }
+    },
+    {
+      "rename": {
+        "description": "Rename faitour.file to file",
+        "tag": "rename_faitour_file",
+        "if": "ctx.faitour?.file != null",
+        "field": "faitour.file",
+        "target_field": "file",
+        "override": true,
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "gsub": {
+        "description": "Parse file path from file name if available",
+        "tag": "gsub_file_path",
+        "if": "ctx.file?.name != null && ctx.file.name =~ /[\\\\\\/]/",
+        "field": "file.name",
+        "target_field": "file.path",
+        "pattern": "[\\\\/][^\\\\/]*$",
+        "replacement": "",
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "gsub": {
+        "description": "Remove file path from file name if available",
+        "tag": "gsub_file_name",
+        "if": "ctx.file?.name != null && ctx.file.name =~ /[\\\\\\/]/",
+        "field": "file.name",
+        "pattern": "^(.*)[\\\\/]",
+        "replacement": "",
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "gsub": {
+        "description": "Parse file extension from file name if available",
+        "tag": "gsub_file_extension",
+        "if": "ctx.file?.name != null && ctx.file.name =~ /[\\.]/",
+        "field": "file.name",
+        "target_field": "file.extension",
+        "pattern": "^.*[\\.]",
+        "replacement": "",
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "rename": {
+        "description": "Rename faitour.log to log",
+        "tag": "rename_faitour_log",
+        "if": "ctx.faitour?.log != null",
+        "field": "faitour.log",
+        "target_field": "log",
+        "override": true,
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "rename": {
+        "description": "Rename faitour.source to source",
+        "tag": "rename_faitour_source",
+        "if": "ctx.faitour?.source != null",
+        "field": "faitour.source",
+        "target_field": "source",
+        "override": true,
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "rename": {
+        "description": "Rename faitour.user to user",
+        "tag": "rename_faitour_user",
+        "if": "ctx.faitour?.user != null",
+        "field": "faitour.user",
+        "target_field": "user",
+        "override": true,
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "rename": {
+        "description": "Rename message to event.original",
+        "tag": "rename_message",
+        "if": "ctx.event?.original == null",
+        "field": "message",
+        "target_field": "event.original"
+      }
+    },
+    {
+      "remove": {
+        "description": "Remove message",
+        "tag": "remove_message",
+        "if": "ctx.event?.original != null",
+        "field": "message",
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "remove": {
+        "description": "Remove _temp fields that may have been used in processing",
+        "tag": "Remove _temp fields that may have been used in processing",
+        "field": "_temp",
+        "ignore_missing": true
+      }
+    },
+    {
+      "remove": {
+        "description": "Remove event.original if tags does not contain preserve_original_event",
+        "tag": "remove_event_original",
+        "field": "event.original",
+        "if": "ctx?.tags == null || !(ctx.tags.contains('preserve_original_event'))",
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    }
+  ],
+  "on_failure": [
+    {
+      "append": {
+        "field": "event.kind",
+        "value": "pipeline_error"
+      }
+    },
+    {
+      "append": {
+        "field": "error.message",
+        "value": "Processor {{ _ingest.on_failure_processor_type }} with tag {{ _ingest.on_failure_processor_tag }} in pipeline {{ _ingest.on_failure_pipeline }} failed with message {{ _ingest.on_failure_message }}"
+      }
+    }
+  ]
+}
