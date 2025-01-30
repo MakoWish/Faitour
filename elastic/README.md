@@ -2,15 +2,15 @@
 
 ## Notes
 
-I will eventually get a Faitour integration pushed to the official Elastic repo, but for the time being, you can use the "Custom Logs" integration to collect logs. 
+I will eventually get a Faitour integration pushed to the official Elastic repo, but for the time being, you can use the "Custom Logs" integration to collect logs. This basic walkthrough should help you to get all set up.
 
 ## Configuration
 
 ### Ingest Pipeline
 
-You will find a file `logs-faitour.log@custom.json` in the "ingest_pipeline" folder. Navigate to Dev Tools within Kibana, and type the following:
+You will find a file `logs-faitour.log@custom.json` in the "ingest_pipeline" folder. Navigate to Dev Tools within Kibana, and type the following in the left pane:
 
-```json
+```bash
 PUT _ingest/pipeline/logs-faitour.log@custom
 ```
 
@@ -31,7 +31,9 @@ Within Kibana, click on the hamburger menu at the top left, then scroll down tow
 Once you have a policy created, click into the policy, then click the blue "Add integration" button. Search for "Custom Logs", and you will see a few options, but be sure to specifically select the "Custom Logs" integration. You will again see another blue button on the top right to "Add Custom Logs". Click on that, and you will be taken to a configuration page. Set the following details on this page:
 
 > Integration name: Faitour Logs
+
 > Log file path: /var/log/faitour/*
+
 > Dataset name: faitour.log/faitour/*
 
 Optionally, if you would like to retain the original JSON log in the Elasticsearch documents, expand the `Advanced options` link under "Custom log file", and you will see a field `Tags`. Enter `preserve_original_event` into this field. 
