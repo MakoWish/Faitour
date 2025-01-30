@@ -35,16 +35,6 @@ def main():
 	# Start intercepting packets
 	intercept.start(max_queue_size)
 
-	# Keep all our threads alive until the service is stopped
-#	try:
-#		while True:
-#			time.sleep(1)
-#	except KeyboardInterrupt:
-#		logger.info("Shutting down Faitour due to keyboard interrupt...")
-#	finally:
-#		# If we got here, we are shutting down. Stop emulators
-#		emulators.stop()
-
 
 #===============================================================================
 # Application entry point
