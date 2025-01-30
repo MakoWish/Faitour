@@ -34,16 +34,13 @@ def handle_packet(nfq_packet):
 			# Analyze and process TCP packets
 			if packet.haslayer(TCP):
 				tcp = packet[TCP]
-				ip = packet[IP]					
+				ip = packet[IP]
 
-				syn_packet = (tcp.flags == "S" and tcp.ack == 0)
-
-				if syn_packet:
+				if (tcp.flags == "S" and tcp.ack == 0):
 					if log_tcp_syn:
 						logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_packet","reason":"SYN packet received","outcome":"success"}},"source":{{"ip":"{ip.src}","port":{tcp.sport}}},"destination":{{"ip":"{ip.dst}","port":{tcp.dport}')
-					nfq_packet.accept()
-				else:
-					nfq_packet.accept()
+				# Accept the packet
+				nfq_packet.accept()
 
 			# Analyze and process UDP packets
 			elif packet.haslayer(UDP):
