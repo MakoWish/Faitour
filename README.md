@@ -73,15 +73,20 @@ logging:
 
 #### Operating System Fingerprint
 
-Beyond the basic network and logging configuration, you will also see details for the operating system fingerprint in your config file. By default, the operating system is set to Microsoft Windows Server 2008 R2. If you would like to change fingerprint, please reference the NMAP fingerprints databases. Note that the majority of these fingerprints contain regex patterns. You should replace those regex patterns with data that would not only be matched by those patterns, but also matches the service you are attempting to spoof. 
-
-#### Service Emulators
-
-Several services are emulated that allow real interaction like FTP, Telnet, SSH, and HTTP/S (these are enabled by default) as well as others that you may enable. These services allow you to customize the port they run on, usernames:passwords that grant access to those services, and more. Many of these services provide file system access that you may customize to your liking. This may be a custom web page or pages in `./emulators/web_root`, or files in `./emulators/ftp_root` or `./emulators/telnet_root`. For HTTP(S), it is critical to retain the form attributes with username and password. 
+Beyond the basic network and logging configuration, you will also see details for the operating system fingerprint in your config file. By default, the operating system is set to Microsoft Windows Server 2008 R2. If you would like to change fingerprint, please reference the NMAP fingerprints databases. Note that the majority of these fingerprints contain regex patterns. You should replace those regex patterns with data that would not only be matched by those patterns, but also matches the service you are attempting to spoof.
 
 Operating System Fingerprints can be found at: https://svn.nmap.org/nmap/nmap-os-db
 
+#### Service Emulators
+
+Several services are emulated that allow real interaction like FTP, Telnet, SSH, and HTTP/S (these are enabled by default) as well as others that you may enable. These services allow you to customize the port they run on, usernames:passwords that grant access to those services, and more. Many of these services provide file system access that you may customize to your liking. This may be a custom web page or pages in `./emulators/web_root`, or files in `./emulators/ftp_root` or `./emulators/telnet_root`.
+
 Service Fingerprints can be found at: https://svn.nmap.org/nmap/nmap-service-probes
+
+**_IMPORTANT_**: 
+
+1. If you are going to enable the SSH service, you will need to first change the port your actually SSH is running on. Choose an obscure port number that will not show up on the typical NMAP scan. Ideally, disable SSH and rely on console access only.
+2. If setting up a custom web page, ensure the web form attributes remain the same.
 
 ### Starting
 
