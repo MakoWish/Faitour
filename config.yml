@@ -29,7 +29,7 @@ tls:
   organization: Example Org
   common_name: foo.example.org
 
-# Logging SYN requests will help to detecting port scans
+# Logging SYN requests will help with detecting port scans
 syn_logging:
   tcp: True
 
