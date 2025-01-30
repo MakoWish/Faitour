@@ -46,9 +46,9 @@ What good is a honeypot if you aren't alerted to activity against that honeypot?
 
 #### The Rules
 
-1. Faitour HoneyPot Port Scan Detected (port_scan_detected.ndjson)
+1. Faitour HoneyPot Port Scan Detected `port_scan_detected.ndjson`
     1. This is an Event Correlation rule that watches for 10 or more SYN packets against various ports on your honeypot. This could indicate an overall network scan, or someone enumerating the honeypot itself. 
-2. Faitour HoneyPot Trigger Detected (honeypot_triggered.ndjson)
+2. Faitour HoneyPot Trigger Detected `honeypot_triggered.ndjson`
     1. This rule is designed to alert you when somebody interacts with the services you have enabled on the honeypot. This could indicate an aggressive scan of the machine, or somebody actually interacting with the services.
 
 #### Installation
