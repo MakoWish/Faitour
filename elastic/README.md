@@ -8,7 +8,7 @@ I will eventually get a Faitour integration pushed to the official Elastic repo,
 
 ### Ingest Pipeline
 
-You will find a file `logs-faitour.log@custom.json` in the "ingest_pipeline" folder. Navigate to Dev Tools within Kibana, and type the following in the left pane:
+You will find a file `logs-faitour.log@custom.json` in the `ingest_pipeline` folder. Navigate to Dev Tools within Kibana, and type the following in the left pane:
 
 ```bash
 PUT _ingest/pipeline/logs-faitour.log@custom
