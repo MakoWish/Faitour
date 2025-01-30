@@ -34,7 +34,7 @@ Once you have a policy created, click into the policy, then click the blue "Add 
 
 > Log file path: /var/log/faitour/*
 
-> Dataset name: faitour.log/faitour/*
+> Dataset name: faitour.log
 
 Optionally, if you would like to retain the original JSON log in the Elasticsearch documents, expand the `Advanced options` link under "Custom log file", and you will see a field `Tags`. Enter `preserve_original_event` into this field. 
 
