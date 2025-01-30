@@ -64,7 +64,7 @@ def handle_packet(nfq_packet):
 		else:
 			logger.debug(f'"type":["connection","protocol","info"],"kind":"event","category":["network"],"dataset":"application","action":"handle_packet","reason":"Non-IP packet received","outcome":"success"')
 			nfq_packet.accept()
-		
+
 	except Exception as e:
 		logger.error(f'"type":["error"],"kind":"event","category":["network"],"dataset":"application","action":"handle_packet","reason":"{e}","outcome":"failure"}},"error":{{"message":"{e}"')
 		nfq_packet.accept()
@@ -128,7 +128,7 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 			nfqueue.bind(2, handle_packet, max_len=queue_size)
 		except Exception as e:
 			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"Error monitoring NFQUEUE queue size","outcome":"failure"}},"error":{{"message":"{e}"}}')
-		
+
 		# Sleep for the specified interval before checking again
 		time.sleep(interval)
 
