@@ -12,7 +12,7 @@ class MSSQLEmulator:
 
 	# Start the MSSQL emulator server.
 	def start(self):
-		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_mssql","reason":"MSSQL server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"sucess"')
+		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_mssql","reason":"MSSQL server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
 		self.running = True
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.server_socket.bind((self.host_ip, self.host_port))

@@ -23,7 +23,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 
 	def log_client_ip(self):
 		client_ip, client_port = self.client_address
-		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"client_connect","reason":"HTTP connection established","outcome":"sucess"}},"source":{{"ip":"{client_ip}","port":{client_port}')
+		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"client_connect","reason":"HTTP connection established","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}')
 
 	def set_common_headers(self):
 		# Add headers to mimic IIS 10.0
@@ -110,7 +110,7 @@ class WebServer:
 	def start_http(self):
 		if self.http_enabled:
 			self.running = True
-			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_http","reason":"HTTP server emulator is starting on http://{self.host_ip}:{self.host_port}","outcome":"sucess"')
+			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_http","reason":"HTTP server emulator is starting on http://{self.host_ip}:{self.host_port}","outcome":"success"')
 			httpd_http = TCPServer((self.host_ip, self.host_port), LoginPageHandler)
 			httpd_http.serve_forever()
 
@@ -121,7 +121,7 @@ class WebServer:
 			# Generate certs if they don't exist
 			self.generate_self_signed_cert()
 
-			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_http","reason":"HTTPS server emulator is starting on https://{self.host_ip}:{self.https_port}","outcome":"sucess"')
+			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_http","reason":"HTTPS server emulator is starting on https://{self.host_ip}:{self.https_port}","outcome":"success"')
 			httpd_https = TCPServer((self.host_ip, self.https_port), LoginPageHandler)
 
 			# Create an SSL context

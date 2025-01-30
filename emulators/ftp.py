@@ -127,14 +127,14 @@ class FTPServerEmulator(threading.Thread):
 	# Start the FTP server
 	def start(self):
 		self.setup_server()
-		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"ftp_start","reason":"FTP server emulator is starting","outcome":"sucess"}},"host":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"ftp_start","reason":"FTP server emulator is starting","outcome":"success"}},"host":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.running = True
 		self.server.serve_forever()
 
 	# Stop the FTP server
 	def stop(self):
 		if self.server:
-			logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"application","action":"ftp_start","reason":"FTP server emulator is stopping","outcome":"sucess"}},"host":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"application","action":"ftp_start","reason":"FTP server emulator is stopping","outcome":"success"}},"host":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			self.running = False
 			self.server.close_all()
-			logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"application","action":"ftp_start","reason":"FTP server emulator has stopped","outcome":"sucess"}},"host":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"application","action":"ftp_start","reason":"FTP server emulator has stopped","outcome":"success"}},"host":{{"ip":"{self.host_ip}","port":{self.host_port}')

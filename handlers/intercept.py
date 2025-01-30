@@ -121,16 +121,16 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 						queue_size = int(columns[2])  # Third column is the queue size
 
 						if queue_size > (max_queue_size - 100):
-							logger.warn(f'"type":["info"],"kind":"metric","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"NFQUEUE size {queue_size} approaching threshold of {max_queue_size}","outcome":"sucess"')
+							logger.warn(f'"type":["info"],"kind":"metric","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"NFQUEUE size {queue_size} approaching threshold of {max_queue_size}","outcome":"success"')
 
 							# Unbind and re-bind the NFQUEUE
 							nfqueue.unbind()
 							nfqueue.bind(2, handle_packet, max_len=queue_size)
-							logger.info(f'"type":["info"],"kind":"metric","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"NFQUEUE re-bound due to queue size exceeding threshold","outcome":"sucess"')
+							logger.info(f'"type":["info"],"kind":"metric","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"NFQUEUE re-bound due to queue size exceeding threshold","outcome":"success"')
 					else:
-						logger.warn(f'"type":["info"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"Unexpected format in /proc/net/netfilter/nfnetlink_queue","outcome":"sucess"')
+						logger.warn(f'"type":["info"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"Unexpected format in /proc/net/netfilter/nfnetlink_queue","outcome":"success"')
 				else:
-					logger.warn(f'"type":["info"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue is empty or unreadable","outcome":"sucess"')
+					logger.warn(f'"type":["info"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue is empty or unreadable","outcome":"success"')
 		except FileNotFoundError as e:
 			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue not found","outcome":"failure"}},"error":{{"message":"{e}"}}')
 		except Exception as e:
@@ -139,13 +139,13 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 		# Sleep for the specified interval before checking again
 		time.sleep(interval)
 
-	logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"Monitor thread exiting","outcome":"sucess"')
+	logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"Monitor thread exiting","outcome":"success"')
 
 
 def start(max_queue_size):
 	# Set our iptables and network rules
 	set_rules()
-	logger.info(f'"type":["info","change"],"kind":"event","category":["process"],"dataset":"application","action":"start","reason":"Network and iptables rules have been set","outcome":"sucess"')
+	logger.info(f'"type":["info","change"],"kind":"event","category":["process"],"dataset":"application","action":"start","reason":"Network and iptables rules have been set","outcome":"success"')
 
 	# Create a NetfilterQueue object and bind it to queue number 2
 	nfqueue = NetfilterQueue()
@@ -162,25 +162,25 @@ def start(max_queue_size):
 
 	try:
 		# Run the main nfqueue socket in the main thread
-		logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"application","action":"start","reason":"NFQUEUE socket is now intercepting packets","outcome":"sucess"')
+		logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"application","action":"start","reason":"NFQUEUE socket is now intercepting packets","outcome":"success"')
 		nfqueue.run_socket(s)
 
 	except KeyboardInterrupt:
-		logger.info(f'"type":["info","stop"],"kind":"event","category":["process"],"dataset":"application","action":"stop","reason":"Shutting down Faitour due to keyboard interrupt","outcome":"sucess"')
+		logger.info(f'"type":["info","stop"],"kind":"event","category":["process"],"dataset":"application","action":"stop","reason":"Shutting down Faitour due to keyboard interrupt","outcome":"success"')
 	except Exception as e:
 		logger.info(f'"type":["info","stop"],"kind":"event","category":["process"],"dataset":"application","action":"stop","reason":"Shutting down Faitour due to unknown exception","outcome":"failure"}},"error":{{"message":"{e}"}}')
 	finally:
 		# Clean up resources
 		flush_rules()
-		logger.info(f'"type":["info","change"],"kind":"event","category":["process"],"dataset":"application","action":"stop","reason":"Network and iptables rules have been reset","outcome":"sucess"')
+		logger.info(f'"type":["info","change"],"kind":"event","category":["process"],"dataset":"application","action":"stop","reason":"Network and iptables rules have been reset","outcome":"success"')
 
 		nfqueue.unbind()
-		logger.info(f'"type":["info","change"],"kind":"event","category":["process"],"dataset":"application","action":"stop","reason":"NFQUEUE has been unbound","outcome":"sucess"')
+		logger.info(f'"type":["info","change"],"kind":"event","category":["process"],"dataset":"application","action":"stop","reason":"NFQUEUE has been unbound","outcome":"success"')
 
 		# Signal the monitor thread to stop and wait for it to finish
 		if monitor_thread.is_alive():
 			stop_event.set()
 			monitor_thread.join()
-			logger.info(f'"type":["info","change"],"kind":"event","category":["process"],"dataset":"application","action":"stop","reason":"NFQUEUE monitor stopped","outcome":"sucess"')
+			logger.info(f'"type":["info","change"],"kind":"event","category":["process"],"dataset":"application","action":"stop","reason":"NFQUEUE monitor stopped","outcome":"success"')
 
 	return 0
