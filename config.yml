@@ -32,7 +32,6 @@ tls:
 # Logging SYN requests will help to detecting port scans
 syn_logging:
   tcp: True
-  udp: True
 
 # Operating system to spoof
 operating_system:

@@ -138,8 +138,6 @@ def start(max_queue_size):
 	# Check to see if we should be logging SYN packets
 	global log_tcp_syn
 	log_tcp_syn = config.get_value("syn_logging")["tcp"]
-	global log_udp_syn
-	log_udp_syn = config.get_value("syn_logging")["udp"]
 
 	# Set our iptables and network rules
 	set_rules()
