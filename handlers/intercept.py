@@ -39,29 +39,21 @@ def handle_packet(nfq_packet):
 				syn_packet = (tcp.flags == "S" and tcp.ack == 0)
 
 				if syn_packet:
-					if config.get_value("syn_logging")["tcp"]:
+					if log_tcp_syn:
 						logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_packet","reason":"SYN packet received","outcome":"success"}},"source":{{"ip":"{ip.src}","port":{tcp.sport}}},"destination":{{"ip":"{ip.dst}","port":{tcp.dport}')
 					nfq_packet.accept()
-					# Log full packets for testing and debugging
-					#if ip.src == "192.168.200.25":
-					#	logger.debug(f"Packet Details:\n{packet.show2(dump=True)}")
 				else:
 					nfq_packet.accept()
 
 			# Analyze and process UDP packets
 			elif packet.haslayer(UDP):
-				if fingerprint.is_nmap_udp(packet):
-					spoof.udp(nfq_packet, packet)
-					nfq_packet.accept()
-				else:
-					nfq_packet.accept()
+				# More work to do here
+				nfq_packet.accept()
 
-			# Check to see if ICMP ping is from an NMAP scan
+			# Analyze and process ICMP packets
 			elif packet.haslayer(ICMP):
-				if fingerprint.is_nmap_icmp(packet):
-					spoof.icmp(nfq_packet, packet)
-				else:
-					nfq_packet.accept()
+				# Not sure if I want to do more here
+				nfq_packet.accept()
 
 			# Currently not doing anything with IGMP packets
 			elif packet.haslayer(IGMP):
@@ -143,6 +135,12 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 
 
 def start(max_queue_size):
+	# Check to see if we should be logging SYN packets
+	global log_tcp_syn
+	log_tcp_syn = config.get_value("syn_logging")["tcp"]
+	global log_udp_syn
+	log_udp_syn = config.get_value("syn_logging")["udp"]
+
 	# Set our iptables and network rules
 	set_rules()
 	logger.info(f'"type":["info","change"],"kind":"event","category":["process"],"dataset":"application","action":"start","reason":"Network and iptables rules have been set","outcome":"success"')
