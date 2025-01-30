@@ -144,13 +144,6 @@ class WebServer:
 			https_thread.daemon = True
 			https_thread.start()
 
-		# This is to keep the main thread running while other threads serve requests
-		try:
-			while True:
-				pass
-		except KeyboardInterrupt:
-			stop_servers()
-
 	def stop_servers(self):
 		# Stop the HTTP server if it's running
 		if self.httpd_http:
