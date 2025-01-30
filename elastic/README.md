@@ -36,7 +36,7 @@ Once you have a policy created, click into the policy, then click the blue "Add 
 
 > Dataset name: faitour.log
 
-Optionally, if you would like to retain the original JSON log in the Elasticsearch documents, expand the `Advanced options` link under "Custom log file", and you will see a field `Tags`. Enter `preserve_original_event` into this field. 
+Optionally, if you would like to retain the original JSON log in the Elasticsearch documents, expand the `Advanced options` link under "Custom log file", and you will see a field `Tags`. Enter `preserve_original_event` into this field. This will ensure the original log entry is preserved in the Elasticsearch field `event.original`.
 
 That should be it! Click the "Save and continue" button on the bottom right. 
 
