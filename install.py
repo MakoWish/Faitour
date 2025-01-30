@@ -33,7 +33,7 @@ def install_apt_packages():
 	try:
 		log("Updating apt package list...")
 		subprocess.run(["apt", "update"], check=True)
-		
+
 		log("Installing apt packages...")
 		subprocess.run(["apt", "install", "-y"] + apt_packages, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		log("Apt packages installed successfully.")
@@ -122,8 +122,8 @@ def main():
 	install_pip_packages()
 	create_systemd_service()
 
-	log("Installation complete.")
-	log("Be sure to update your network settings in './config.yml'")
+	log("Installation complete!")
+	log("Be sure to update your network settings in './config.yml'!")
 
 
 # Entry point
