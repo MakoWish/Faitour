@@ -2,8 +2,6 @@ import base64
 import socket
 import threading
 import utils.config as config
-import handlers.fingerprint as fingerprint
-import handlers.spoof as spoof
 from netfilterqueue import NetfilterQueue
 from subprocess import DEVNULL, STDOUT, check_call
 from scapy.all import *
