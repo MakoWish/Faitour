@@ -28,7 +28,7 @@ class Logger:
 			self.logger.addHandler(stdoutLogger)
 
 			# Confirm that our stdout logger has been configured
-			self.logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"stdout_logging","reason":"Stdout logging has been initiated and set to {log_level}","outcome":"success"')
+			self.logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"stdout_logging_start","reason":"Stdout logging has been initiated and set to {log_level}","outcome":"success"')
 
 		if file_logging:
 			# Add a file logger if enabled
@@ -44,14 +44,14 @@ class Logger:
 			fileLogger.setFormatter(logging.Formatter('{"timestamp":"%(asctime)s.%(msecs)03d","log":{"level":"%(levelname)s","logger":"%(name)s","origin":{"file":{"line":"%(lineno)s","name":"%(pathname)s"}}},"event":{"module":"%(module)s",%(message)s}}', datefmt='%Y-%m-%dT%H:%M:%S'))
 
 			# Note the file we are logging to
-			self.logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"file_logging","reason":"Logging to {log_dir}{log_name}","outcome":"success"')
+			self.logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"file_logging_start","reason":"Logging to {log_dir}{log_name}","outcome":"success"')
 			
 
 			# Add both file and stdout handlers to the logger
 			self.logger.addHandler(fileLogger)
 
 			# Confirm that our file logger has been configured
-			self.logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"file_logging","reason":"File logging has been initiated and set to {log_level}","outcome":"success"')
+			self.logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"file_logging_start","reason":"File logging has been initiated and set to {log_level}","outcome":"success"')
 
 
 	def check_log_path(self, logger, log_dir):
@@ -60,7 +60,6 @@ class Logger:
 				logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"check_log_path","reason":"Log file path {log_dir} exists with write access","outcome":"success"')
 				return True
 			else:
-				logger.critical(f"Log file path '{log_dir}' exists, but we do not have write access. Exiting...")
 				logger.critical(f'"type":["error"],"kind":"event","category":["configuration"],"dataset":"application","action":"check_log_path","reason":"Log file path {log_dir} exists, but we do not have write access","outcome":"failure"')
 				os._exit(1)
 		else:
@@ -68,8 +67,7 @@ class Logger:
 				os.makedirs(log_dir)
 				return True
 			except Exception as e:
-				logger.error(f'"type":["error"],"kind":"event","category":["configuration"],"dataset":"application","action":"check_log_path","reason":"Log file path {log_dir} does not exist, and it could not be created","outcome":"failure"}},"error":{{"message":"{e}"')
-				logger.critical(f'{e}')
+				logger.critical(f'"type":["error"],"kind":"event","category":["configuration"],"dataset":"application","action":"check_log_path","reason":"Log file path {log_dir} does not exist, and it could not be created","outcome":"failure"}},"error":{{"message":"{e}"')
 				os._exit(1)
 
 

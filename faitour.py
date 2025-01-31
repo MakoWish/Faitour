@@ -14,16 +14,16 @@ from utils.logger import logger
 def main():
 	# Ensure we are running as root/sudo
 	if os.geteuid() != 0:
-		logger.critical('"type":["start","error","denied"],"kind":"event","category":["process"],"dataset":"application","action":"application_start","reason":"Application must be run as root/sudo","outcome":"failure"')
+		logger.critical('"type":["start","error"],"kind":"event","category":["process"],"dataset":"application","action":"start","reason":"Application must be run as root/sudo","outcome":"failure"')
 		os._exit(5)
 
 	# Ensure our configuration looks okay
 	if not config.is_valid():
-		logger.critical('"type":["start","error"],"kind":"event","category":["process"],"dataset":"application","action":"check_config","reason":"Default configuration found","outcome":"failure"')
+		logger.critical('"type":["error"],"kind":"event","category":["configuration"],"dataset":"application","action":"check_config","reason":"Default configuration found","outcome":"failure"')
 		return False
 
 	# Note that the application is starting
-	logger.info('"type":["start","info"],"kind":"event","category":"process","dataset":"application","action":"application_start","reason":"Faitour is starting","outcome":"success"')
+	logger.info('"type":["start","info"],"kind":"event","category":["process"],"dataset":"application","action":"reason","reason":"Faitour is starting","outcome":"unknown"')
 
 	# Start any emulators that are enabled
 	emulators = ServiceEmulators()
@@ -43,7 +43,7 @@ if __name__ == "__main__":
 	try:
 		main()
 	except Exception as e:
-		logger.error(f'"type":["end","error"],"kind":"event","category":["process"],"dataset":"application","action":"application_stop","reason":"{e}","outcome":"failure"')
+		logger.error(f'"type":["end","error"],"kind":"event","category":["process"],"dataset":"application","action":"end","reason":"{e}","outcome":"failure"')
 	finally:
-		logger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"application","action":"application_stop","reason":"Faitour has stopped","outcome":"success"')
+		logger.info('"type":["end","info"],"kind":"event","category":["process"],"dataset":"application","action":"end","reason":"Faitour has stopped","outcome":"success"')
 		os._exit(0)

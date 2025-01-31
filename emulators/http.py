@@ -26,11 +26,9 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"client_connect","reason":"HTTP connection established","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}')
 
 	def set_common_headers(self):
-		# Add headers to mimic IIS 10.0
 		self.send_header("Server", config.get_service_by_name("http")["server_header"])
 
 	def version_string(self):
-		# Override the server software version
 		return config.get_service_by_name("http")["server_header"]
 
 	def sys_version(self):
@@ -81,17 +79,19 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		password = form_data.get("password", [""])[0]
 
 		client_ip, client_port = self.client_address
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"do_POST","reason":"HTTP login attempt","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"user":{{"name":"{username}","password":"{password}"')
 
-		# Validate the credentials (you can add your own logic here)
-		if username == config.get_service_by_name("http")["username"] and password == config.get_service_by_name("http")["password"]:  # Replace with your own validation
+		# Validate the credentials
+		if username == config.get_service_by_name("http")["username"] and password == config.get_service_by_name("http")["password"]:
+			logger.info(f'"type":["user","connection","allowed"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"honeypot","action":"do_POST","reason":"HTTP login success","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"user":{{"name":"{username}","password":"{password}"')
 			response = "Thank you for tripping my honeypot!"
+			self.send_response(200)
 		else:
+			logger.error(f'"type":["user","connection","denied"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"honeypot","action":"do_POST","reason":"HTTP login failure","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"user":{{"name":"{username}","password":"{password}"')
 			response = "Invalid username or password."
+			self.send_response(403)
 
 		# Send the response back to the client
-		self.send_response(200)
-		self.set_common_headers()  # Add IIS headers
+		self.set_common_headers()
 		self.send_header("Content-type", "text/html")
 		self.end_headers()
 		self.wfile.write(response.encode("utf-8"))
@@ -168,7 +168,7 @@ class WebServer:
 
 		# Check if the certificate and key files already exist
 		if os.path.exists(cert_path) and os.path.exists(key_path):
-			logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"generate_self_signed_cert","reason":"HTTP certificate and key already exist","outcome":"success"')
+			logger.debug(f'"type":["info","access"],"kind":"event","category":["configuration"],"dataset":"application","action":"generate_self_signed_cert","reason":"HTTP certificate and key already exist","outcome":"success"')
 			return
 
 		# Generate a private key
@@ -224,4 +224,4 @@ class WebServer:
 				certificate.public_bytes(encoding=serialization.Encoding.PEM)
 			)
 
-		logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"generate_self_signed_cert","reason":"HTTPS Self-signed certificate and key generated","outcome":"success"')
+		logger.debug(f'"type":["info","creation"],"kind":"event","category":["configuration"],"dataset":"application","action":"generate_self_signed_cert","reason":"HTTPS Self-signed certificate and key generated","outcome":"success"')

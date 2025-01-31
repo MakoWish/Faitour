@@ -18,28 +18,28 @@ class CustomFTPHandler(FTPHandler):
 		self.host_port = None
 
 	def on_system(self):
-		logger.debug(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"on_system","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.debug(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"on_system","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.respond("215 CustomSystemType")
 
 	def handle_SYST(self):
 		# This will override the default SYST command response
-		logger.debug(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_SYST","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.debug(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_SYST","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.respond("215 CustomSystemType")
 
 	def get_system_type(self):
-		logger.debug(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"get_system_type","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.debug(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"get_system_type","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.respond('215 Custom System Type')
 
 	def send_system_type(self):
-		logger.debug(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"send_system_type","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.debug(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"send_system_type","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.respond('215 Custom System Type')
 
 	def send_welcome(self):
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"send_welcome","reason":"FTP banner sent","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"send_welcome","reason":"FTP banner sent","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.respond(config.get_service_by_name("ftp")["fingerprint"])
 
 	def on_connect(self):
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"on_connect","reason":"FTP Connection established","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"on_connect","reason":"FTP Connection established","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 	def on_disconnect(self):
 		logger.info(f'"type":["connection","end"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"on_disconnect","reason":"FTP Connection closed","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
