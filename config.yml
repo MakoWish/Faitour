@@ -11,7 +11,7 @@ network:
 
 # Logging configuration
 logging:
-  level: INFO    # DEBUG, INFO, WARN, ERROR, CRITICAL
+  level: DEBUG    # DEBUG, INFO, WARN, ERROR, CRITICAL
   name: faitour
   stdout:
     enabled: True
@@ -80,6 +80,7 @@ services:
     port: 80
     username: admin   # Also applies to HTTPS
     password: admin   # Also applies to HTTPS
+    default_doc: index.html   # Also applies to HTTPS
     server_header: Microsoft-IIS/3.1
     fingerprint: |
         HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/10.0\r\n
@@ -104,6 +105,7 @@ services:
     port: 443
     username: # Set under HTTP
     password: # Set under HTTP
+    default_doc: # Set under HTTP
     fingerprint: |
         HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/10.0\r\n
   - name: smb
