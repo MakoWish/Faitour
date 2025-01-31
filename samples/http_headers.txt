@@ -1,0 +1,14 @@
+Microsoft IIS 10.0
+==========================================
+server_header: Microsoft-IIS/10.0
+fingerprint: HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/10.0\r\n
+
+Microsoft IIS 3.2
+==========================================
+server_header: Microsoft-IIS/3.2
+fingerprint: HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/3.2\r\n
+
+Apache 2.2.9
+==========================================
+server_header: Apache httpd v2.2.9
+fingerprint: HTTP/1\.1 200 OK\r\nDate: Thu, 23 Jan 2025 03:52:09 GMT\r\nServer:  \r\nAllow: GET,HEAD,POST,OPTIONS\r\nVary: Accept-Encoding\r\nContent-Length: 0\r\nConnection: close\r\nContent-Type: text/html\r\n\r\n
