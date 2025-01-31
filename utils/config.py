@@ -81,17 +81,7 @@ def is_valid():
 # Get the entire configuration to variable
 config = load_config()
 
-
-#===============================================================================
-#===============================================================================
-
-# Get a list of enabled services
-enabled_services = get_enabled_services()
-
-# Get all enabled service ports
-enabled_ports = []
-for service in enabled_services:
-	enabled_ports.append(service["port"])
-
-if_name = get_value("network.adapter.name")
-if_sock = conf.L3socket(iface=if_name)
+# If our configuration is not default, get our interface
+if is_valid():
+	if_name = get_value("network.adapter.name")
+	if_sock = conf.L3socket(iface=if_name)
