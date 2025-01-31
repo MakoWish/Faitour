@@ -17,6 +17,10 @@ from cryptography.hazmat.primitives import serialization
 
 # Custom request handler to serve only the login page
 class LoginPageHandler(http.server.BaseHTTPRequestHandler):
+	http_root = "./emulators/http_root"
+	default_doc = config.get_service_by_name("http")["default_doc"]
+	authenticated = False
+
 	def log_message(self, format, *args):
 		# This method is overridden to do nothing, effectively disabling the log output
 		pass
@@ -35,9 +39,22 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		# Suppress the Python version in the header
 		return ""
 
+	def send_403(self):
+		self.send_response(403)
+		self.set_common_headers()
+		self.send_header("Content-type", "text/html")
+		self.end_headers()
+
+	def send_404(self):
+		self.send_response(404)
+		self.set_common_headers()  # Add headers from config
+		self.send_header("Content-type", "text/html")
+		self.end_headers()
+		self.wfile.write(b"404 Not Found")
+
 	def do_GET(self):
 		self.log_client_ip()  # Log the client's IP and port
-		if self.path == "/":
+		if self.path == "/" or self.path == "/login.html":
 			# Serve the login page
 			self.send_response(200)
 			self.set_common_headers()  # Add headers from config
@@ -45,15 +62,39 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 			self.end_headers()
 
 			# Serve the login HTML page
-			with open("./emulators/web_root/login.html", "r") as file:
+			with open(f"{http_root}/login.html", "r") as file:
 				self.wfile.write(file.read().encode("utf-8"))
+		elif os.path.exists(f"{http_root}/{self.path}"):
+			if os.path.isfile(f"{http_root}/{self.path}"):
+				if authenticated:
+					self.send_response(200)
+					self.set_common_headers()  # Add headers from config
+					self.send_header("Content-type", "text/html")
+					self.end_headers()
+
+					# Serve whatever custom pages exist
+					with open(f"{http_root}/{self.path}", "r") as file:
+						self.wfile.write(file.read().encode("utf-8"))
+				else:
+					self.send_403()
+			else:
+				if os.path.exists(f"{http_root}/{self.path}/{default_doc}"):
+					if authenticated:
+						self.send_response(200)
+						self.set_common_headers()  # Add headers from config
+						self.send_header("Content-type", "text/html")
+						self.end_headers()
+
+						# Serve whatever custom pages exist
+						with open(f"{http_root}/{self.path}", "r") as file:
+							self.wfile.write(file.read().encode("utf-8"))
+					else:
+						self.send_403()
+				else:
+					self.send_404()
+
 		else:
-			# If it's any other path, return 404
-			self.send_response(404)
-			self.set_common_headers()  # Add headers from config
-			self.send_header("Content-type", "text/html")
-			self.end_headers()
-			self.wfile.write(b"404 Not Found")
+			self.send_404()
 
 	def do_POST(self):
 		self.log_client_ip()  # Log the client's IP and port
@@ -85,6 +126,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 			logger.info(f'"type":["user","connection","allowed"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"honeypot","action":"do_POST","reason":"HTTP login success","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"user":{{"name":"{username}","password":"{password}"')
 			response = "Thank you for tripping my honeypot!"
 			self.send_response(200)
+			authenticated = True
 		else:
 			logger.error(f'"type":["user","connection","denied"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"honeypot","action":"do_POST","reason":"HTTP login failure","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"user":{{"name":"{username}","password":"{password}"')
 			response = "Invalid username or password."
