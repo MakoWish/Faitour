@@ -1,1 +1,1 @@
-Congratulations! You have triggered my honeypot!
+Congratulations! You have triggered our honeypot!
