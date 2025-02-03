@@ -17,26 +17,12 @@ class CustomFTPHandler(FTPHandler):
 		self.host_ip = None
 		self.host_port = None
 
-	def on_system(self):
-		logger.debug(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"on_system","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
-		self.respond("215 CustomSystemType")
-
-	def handle_SYST(self):
-		# This will override the default SYST command response
-		logger.debug(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_SYST","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
-		self.respond("215 CustomSystemType")
-
-	def get_system_type(self):
-		logger.debug(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"get_system_type","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
-		self.respond('215 Custom System Type')
-
-	def send_system_type(self):
-		logger.debug(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"send_system_type","reason":"Send system banner","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
-		self.respond('215 Custom System Type')
+	def ftp_SYST(self, line):
+		self.respond(f"215 {config.get_service_by_name("ftp")["system_type"]}")
 
 	def send_welcome(self):
 		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"send_welcome","reason":"FTP banner sent","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
-		self.respond(config.get_service_by_name("ftp")["fingerprint"])
+		self.respond(config.get_service_by_name("ftp")["banner"])
 
 	def on_connect(self):
 		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"on_connect","reason":"FTP Connection established","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
@@ -122,7 +108,7 @@ class FTPServerEmulator(threading.Thread):
 
 		# Create the FTP server instance
 		self.server = FTPServer((self.host_ip, self.host_port), self.handler)
-		self.handler.banner = config.get_service_by_name("ftp")["fingerprint"].strip()
+		self.handler.banner = config.get_service_by_name("ftp")["banner"].strip()
 
 	# Start the FTP server
 	def start(self):
