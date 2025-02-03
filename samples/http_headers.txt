@@ -1,3 +1,7 @@
+SAMPLE HTTP SERVER HEADERS
+These are just a few samples that have been tested and spoof the noted web server and version.
+
+
 Microsoft IIS 10.0
 ==========================================
 server_header: Microsoft-IIS/10.0
