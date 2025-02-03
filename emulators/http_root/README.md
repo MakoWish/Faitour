@@ -16,4 +16,4 @@ To protect files with our basic authentication, place the following string as th
 <!-- PROTECTED -->
 ```
 
-Any files containing this string as the first line will only be served after the user authenticates with our terrible credentials.
+Any files containing this string as the first line will only be served after the user authenticates with our intentionally-terrible credentials.
