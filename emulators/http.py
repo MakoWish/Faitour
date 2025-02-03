@@ -5,7 +5,7 @@ import threading
 import http.server
 import utils.config as config
 from socketserver import TCPServer
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, urlunparse, urlparse
 from utils.logger import logger
 from datetime import datetime, timedelta
 from http.cookies import SimpleCookie
@@ -37,6 +37,28 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		# Suppress the Python version in the header
 		return ""
 
+	def get_full_url(self):
+		# Determine the scheme from headers (assume "http" or "https")
+		protocol = "https" if self.headers.get("X-Forwarded-Proto", "http") == "https" else "http"
+
+		# Get the host (domain) from the Host header
+		host = self.headers.get("Host", "localhost")
+
+		# Extract path, query, and fragment components
+		parsed_path = urlparse(self.path)
+
+		# Build the full URL
+		full_url = urlunparse((
+			protocol,
+			host,
+			parsed_path.path,
+			parsed_path.params,
+			parsed_path.query,
+			parsed_path.fragment
+		))
+
+		return full_url
+
 	def is_authenticated(self):
 		# Check for an (intentionally-insecure) authentication cookie
 		cookie_header = self.headers.get("Cookie")
@@ -47,7 +69,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		return False
 
 	def send_error_page(self, response_code: int):
-		logger.info(f'"type":["connection","{type}","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"http_get","reason":"HTTP GET Request","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"GET"}},"response":{{"status_code":{response_code}}}}},"url":{{"path":"{self.path}"')
+		logger.info(f'"type":["connection","{type}","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"http_get","reason":"HTTP GET Request","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"GET"}},"response":{{"status_code":{response_code}}}}},"url":{{"full":"{self.get_full_url()}","path":"{self.path}"')
 		self.send_response(response_code)
 		self.send_header("Content-type", "text/html")
 		#self.set_common_headers()
@@ -69,7 +91,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 				self.wfile.write(b"404 Not Found")
 
 	def serve_page(self, method, status_code, path):
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"http_get","reason":"HTTP {method} Request","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"{method}"}},"response":{{"status_code":{status_code}}}}},"url":{{"path":"{path}"')
+		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"http_get","reason":"HTTP {method} Request","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"{method}"}},"response":{{"status_code":{status_code}}}}},"url":{{"full":"{self.get_full_url()}","path":"{path}"')
 		self.send_response(status_code)
 		self.send_header("Content-type", "text/html")
 		if path == "/logout.html":
@@ -156,7 +178,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 
 		# Validate the credentials (you can add your own logic here)
 		if username == config.get_service_by_name("http")["username"] and password == config.get_service_by_name("http")["password"]:
-			logger.info(f'"type":["user","authentication","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"login","reason":"User login success","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":200}}}},"url":{{"path":"{self.path}"}},"user":{{"name":"{username}","password":"{password}"')
+			logger.info(f'"type":["user","authentication","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"login","reason":"User login success","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":200}}}},"url":{{"full":"{self.get_full_url()}","path":"{self.path}"}},"user":{{"name":"{username}","password":"{password}"')
 			cookie = SimpleCookie()
 			cookie["session"] = "authenticated"  # This is intentionally insecure
 			cookie["session"]["httponly"] = True
@@ -170,7 +192,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 			with open(f"{self.http_root}/index.html", "r") as file:
 				self.wfile.write(file.read().encode("utf-8"))
 		else:
-			logger.error(f'"type":["user","authentication","denied"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"login_fail","reason":"User login failed","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":401}}}},"url":{{"path":"{self.path}"}},"user":{{"name":"{username}","password":"{password}"')
+			logger.error(f'"type":["user","authentication","denied"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"login_fail","reason":"User login failed","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":401}}}},"url":{{"full":"{self.get_full_url()}","path":"{self.path}"}},"user":{{"name":"{username}","password":"{password}"')
 			self.send_error_page(401)
 
 class WebServer:
