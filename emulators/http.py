@@ -8,6 +8,7 @@ from socketserver import TCPServer
 from urllib.parse import parse_qs
 from utils.logger import logger
 from datetime import datetime, timedelta
+from http.cookies import SimpleCookie
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
@@ -19,85 +20,119 @@ from cryptography.hazmat.primitives import serialization
 class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 	http_root = "./emulators/http_root"
 	default_doc = config.get_service_by_name("http")["default_doc"]
-	authenticated = False
 
 	def log_message(self, format, *args):
 		# This method is overridden to do nothing, effectively disabling the log output
 		pass
 
-	def log_client_ip(self):
-		client_ip, client_port = self.client_address
-		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"client_connect","reason":"HTTP connection established","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}')
-
 	def set_common_headers(self):
+		# Add headers to mimic IIS 10.0
 		self.send_header("Server", config.get_service_by_name("http")["server_header"])
 
 	def version_string(self):
+		# Override the server software version
 		return config.get_service_by_name("http")["server_header"]
 
 	def sys_version(self):
 		# Suppress the Python version in the header
 		return ""
 
-	def send_403(self):
-		self.send_response(403)
-		self.set_common_headers()
-		self.send_header("Content-type", "text/html")
-		self.end_headers()
+	def is_authenticated(self):
+		# Check for an (intentionally-insecure) authentication cookie
+		cookie_header = self.headers.get("Cookie")
+		if cookie_header:
+			cookie = SimpleCookie(cookie_header)
+			if "session" in cookie and cookie["session"].value == "authenticated":
+				return True
+		return False
 
-	def send_404(self):
-		self.send_response(404)
-		self.set_common_headers()  # Add headers from config
+	def send_error_page(self, response_code: int):
+		logger.info(f'"type":["connection","{type}","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"http_get","reason":"HTTP GET Request","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"GET"}},"response":{{"status_code":{response_code}}}}},"url":{{"path":"{self.path}"')
+		self.send_response(response_code)
 		self.send_header("Content-type", "text/html")
+		#self.set_common_headers()
+		self.send_header("Server", config.get_service_by_name("http")["server_header"])
 		self.end_headers()
-		self.wfile.write(b"404 Not Found")
+		error_page_path = f"{self.http_root}/error_pages/{response_code}.html"
+
+		try:
+			with open(error_page_path, "r") as file:
+				content = file.read()
+				self.wfile.write(content.encode("utf-8"))
+		except FileNotFoundError:
+			# Fallback if custom error page is missing
+			if response_code == 401:
+				self.wfile.write(b"401 Unauthorized")
+			if response_code == 404:
+				self.wfile.write(b"403 Forbidden")
+			if response_code == 404:
+				self.wfile.write(b"404 Not Found")
+
+	def serve_page(self, method, status_code, path):
+		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"http_get","reason":"HTTP {method} Request","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"{method}"}},"response":{{"status_code":{status_code}}}}},"url":{{"path":"{path}"')
+		self.send_response(status_code)
+		self.send_header("Content-type", "text/html")
+		if path == "/logout.html":
+			self.send_header("Set-Cookie", "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly")
+		self.send_header("Server", config.get_service_by_name("http")["server_header"])
+		self.end_headers()
+		with open(f"{self.http_root}{path}", "r") as file:
+			self.wfile.write(file.read().encode("utf-8"))
 
 	def do_GET(self):
-		self.log_client_ip()  # Log the client's IP and port
 		if self.path == "/" or self.path == "/login.html":
-			# Serve the login page
-			self.send_response(200)
-			self.set_common_headers()  # Add headers from config
-			self.send_header("Content-type", "text/html")
-			self.end_headers()
-
 			# Serve the login HTML page
-			with open(f"{http_root}/login.html", "r") as file:
-				self.wfile.write(file.read().encode("utf-8"))
-		elif os.path.exists(f"{http_root}/{self.path}"):
-			if os.path.isfile(f"{http_root}/{self.path}"):
-				if authenticated:
-					self.send_response(200)
-					self.set_common_headers()  # Add headers from config
-					self.send_header("Content-type", "text/html")
-					self.end_headers()
-
-					# Serve whatever custom pages exist
-					with open(f"{http_root}/{self.path}", "r") as file:
-						self.wfile.write(file.read().encode("utf-8"))
-				else:
-					self.send_403()
-			else:
-				if os.path.exists(f"{http_root}/{self.path}/{default_doc}"):
-					if authenticated:
-						self.send_response(200)
-						self.set_common_headers()  # Add headers from config
-						self.send_header("Content-type", "text/html")
-						self.end_headers()
-
-						# Serve whatever custom pages exist
-						with open(f"{http_root}/{self.path}", "r") as file:
-							self.wfile.write(file.read().encode("utf-8"))
+			self.serve_page("GET", 200, "/login.html")
+		elif self.path.endswith("README.md"):
+			# Explicitly return 404 for any README.md files
+			self.send_error_page(404)
+		elif os.path.exists(f"{self.http_root}/{self.path}"):
+			if os.path.isfile(f"{self.http_root}/{self.path}"):
+				# Check to see if this should be a protected document
+				with open(f"{self.http_root}/{self.path}", "r") as file:
+					if "PROTECTED" in file.readline().strip():
+						protected = True
 					else:
-						self.send_403()
-				else:
-					self.send_404()
+						protected = False
 
+				if protected:
+					if self.is_authenticated():
+						# Protected but authenticated. Serve the page.
+						self.serve_page("GET", 200, self.path)
+					else:
+						# Protected but not authenticated.
+						self.send_error_page(401)
+				else:
+					# Not protected. Serve the page.
+					self.serve_page("GET", 200, self.path)
+			else:
+				# Requested path was a directory. See if there is a default document
+				if os.path.exists(f"{self.http_root}/{self.path}/{self.default_doc}"):
+					# Check to see if this should be a protected document
+					with open(f"{self.http_root}/{self.path}/{self.default_doc}", "r") as file:
+						if "PROTECTED" in file.readline().strip():
+							protected = True
+						else:
+							protected = False
+
+					if protected:
+						if self.is_authenticated():
+							# Protected but authenticated. Serve the page.
+							self.serve_page("GET", 200, f"{self.path}/{self.default_doc}")
+						else:
+							# Protected but not authenticated.
+							self.send_error_page(401)
+					else:
+						# Not protected. Serve the page.
+						self.serve_page("GET", 200, f"{self.path}/{self.default_doc}")
+				else:
+					# Page does not exist.
+					self.send_error_page(404)
 		else:
-			self.send_404()
+			# If it's any other path, return 404
+			self.send_error_page(404)
 
 	def do_POST(self):
-		self.log_client_ip()  # Log the client's IP and port
 		# Parse the content type and content length
 		content_type = self.headers.get("Content-Type")
 		content_length = int(self.headers.get("Content-Length", 0))
@@ -119,24 +154,24 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		username = form_data.get("username", [""])[0]
 		password = form_data.get("password", [""])[0]
 
-		client_ip, client_port = self.client_address
-
-		# Validate the credentials
+		# Validate the credentials (you can add your own logic here)
 		if username == config.get_service_by_name("http")["username"] and password == config.get_service_by_name("http")["password"]:
-			logger.info(f'"type":["user","connection","allowed"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"honeypot","action":"do_POST","reason":"HTTP login success","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"user":{{"name":"{username}","password":"{password}"')
-			response = "Thank you for tripping my honeypot!"
+			logger.info(f'"type":["user","authentication","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"login","reason":"User login success","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":200}}}},"url":{{"path":"{self.path}"}},"user":{{"name":"{username}","password":"{password}"')
+			cookie = SimpleCookie()
+			cookie["session"] = "authenticated"  # This is intentionally insecure
+			cookie["session"]["httponly"] = True
 			self.send_response(200)
-			authenticated = True
+			#self.set_common_headers()
+			self.send_header("Server", config.get_service_by_name("http")["server_header"])
+			self.send_header("Content-type", "text/html")
+			for morsel in cookie.values():
+				self.send_header("Set-Cookie", morsel.OutputString())
+			self.end_headers()
+			with open(f"{self.http_root}/index.html", "r") as file:
+				self.wfile.write(file.read().encode("utf-8"))
 		else:
-			logger.error(f'"type":["user","connection","denied"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"honeypot","action":"do_POST","reason":"HTTP login failure","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"user":{{"name":"{username}","password":"{password}"')
-			response = "Invalid username or password."
-			self.send_response(403)
-
-		# Send the response back to the client
-		self.set_common_headers()
-		self.send_header("Content-type", "text/html")
-		self.end_headers()
-		self.wfile.write(response.encode("utf-8"))
+			logger.error(f'"type":["user","authentication","denied"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"login_fail","reason":"User login failed","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":401}}}},"url":{{"path":"{self.path}"}},"user":{{"name":"{username}","password":"{password}"')
+			self.serve_page(401)
 
 class WebServer:
 	def __init__(self, http_enabled: bool, https_enabled: bool):
@@ -152,9 +187,11 @@ class WebServer:
 	def start_http(self):
 		if self.http_enabled:
 			self.running = True
-			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_http","reason":"HTTP server emulator is starting on http://{self.host_ip}:{self.host_port}","outcome":"success"')
+			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_http","reason":"HTTP server emulator is starting on http://{self.host_ip}:{self.host_port}","outcome":"unknown"')
+			TCPServer.allow_reuse_address = True
 			httpd_http = TCPServer((self.host_ip, self.host_port), LoginPageHandler)
 			httpd_http.serve_forever()
+			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_http","reason":"HTTP server emulator has started on http://{self.host_ip}:{self.host_port}","outcome":"success"')
 
 	def start_https(self):
 		if self.https_enabled:
@@ -163,8 +200,10 @@ class WebServer:
 			# Generate certs if they don't exist
 			self.generate_self_signed_cert()
 
-			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_http","reason":"HTTPS server emulator is starting on https://{self.host_ip}:{self.https_port}","outcome":"success"')
+			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_http","reason":"HTTPS server emulator is starting on https://{self.host_ip}:{self.https_port}","outcome":"unknown"')
+			TCPServer.allow_reuse_address = True
 			httpd_https = TCPServer((self.host_ip, self.https_port), LoginPageHandler)
+			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"application","action":"start_http","reason":"HTTPS server emulator has started on https://{self.host_ip}:{self.https_port}","outcome":"success"')
 
 			# Create an SSL context
 			context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
@@ -210,7 +249,7 @@ class WebServer:
 
 		# Check if the certificate and key files already exist
 		if os.path.exists(cert_path) and os.path.exists(key_path):
-			logger.debug(f'"type":["info","access"],"kind":"event","category":["configuration"],"dataset":"application","action":"generate_self_signed_cert","reason":"HTTP certificate and key already exist","outcome":"success"')
+			logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"generate_self_signed_cert","reason":"HTTP certificate and key already exist","outcome":"success"')
 			return
 
 		# Generate a private key
@@ -266,4 +305,4 @@ class WebServer:
 				certificate.public_bytes(encoding=serialization.Encoding.PEM)
 			)
 
-		logger.debug(f'"type":["info","creation"],"kind":"event","category":["configuration"],"dataset":"application","action":"generate_self_signed_cert","reason":"HTTPS Self-signed certificate and key generated","outcome":"success"')
+		logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"application","action":"generate_self_signed_cert","reason":"HTTPS Self-signed certificate and key generated","outcome":"success"')

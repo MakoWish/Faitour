@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    header {
+      background: url('https://via.placeholder.com/1200x200') no-repeat center center;
+      background-size: cover;
+      height: 200px;
+    }
+    nav {
+      background-color: #0073e6;
+      padding: 10px;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      justify-content: space-around;
+    }
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      display: inline-block;
+    }
+    nav ul li a:hover {
+      background-color: #005bb5;
+      border-radius: 4px;
+    }
+    main {
+      flex: 1;
+      padding: 20px;
+      background-color: white;
+    }
+    .card-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: #f1f1f1;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    footer {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 10px 0;
+    }
+  </style>
+</head>
+<body>
+  <header></header>
+  <nav>
+    <ul>
+      <li><a href="#">Home</a></li>
+      <li><a href="#">Analytics</a></li>
+      <li><a href="#">Settings</a></li>
+      <li><a href="#">Reports</a></li>
+      <li><a href="#">Help</a></li>
+    </ul>
+  </nav>
+  <main>
+    <h1>Welcome to the Dashboard</h1>
+    <p>Here you can monitor the system and manage your data effectively.</p>
+
+    <div class="card-container">
+      <div class="card">
+        <h2>System Metrics</h2>
+        <p>View real-time system performance data.</p>
+      </div>
+      <div class="card">
+        <h2>User Activity</h2>
+        <p>Analyze user engagement and actions on the platform.</p>
+      </div>
+      <div class="card">
+        <h2>Data Overview</h2>
+        <p>Get insights into your stored information.</p>
+      </div>
+      <div class="card">
+        <h2>Security Alerts</h2>
+        <p>Monitor and respond to security-related events.</p>
+      </div>
+    </div>
+  </main>
+  <footer>
+    <p>&copy; 2025 Your Company Name. All rights reserved.</p>
+  </footer>
+</body>
+</html>
