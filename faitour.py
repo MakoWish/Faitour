@@ -45,5 +45,6 @@ if __name__ == "__main__":
 	except Exception as e:
 		logger.error(f'"type":["end","error"],"kind":"event","category":["process"],"dataset":"application","action":"end","reason":"{e}","outcome":"failure"')
 	finally:
+		time.sleep(2) # Pause just to give things time to fully shut down in case of a service restart
 		logger.info('"type":["end","info"],"kind":"event","category":["process"],"dataset":"application","action":"end","reason":"Faitour has stopped","outcome":"success"')
 		os._exit(0)
