@@ -154,6 +154,17 @@
       }
     },
     {
+      "uri_parts": {
+        "description": "Parse all parts of the full URL",
+        "tag": "uri_parts",
+        "if": "ctx.url?.full != null",
+        "field": "url.full",
+        "keep_original": true,
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
       "rename": {
         "description": "Rename message to event.original",
         "tag": "rename_message",
