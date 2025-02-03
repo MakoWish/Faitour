@@ -171,7 +171,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 				self.wfile.write(file.read().encode("utf-8"))
 		else:
 			logger.error(f'"type":["user","authentication","denied"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"login_fail","reason":"User login failed","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":401}}}},"url":{{"path":"{self.path}"}},"user":{{"name":"{username}","password":"{password}"')
-			self.serve_page(401)
+			self.send_error_page(401)
 
 class WebServer:
 	def __init__(self, http_enabled: bool, https_enabled: bool):
