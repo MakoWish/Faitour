@@ -1,4 +1,5 @@
 import os
+import codecs
 import socket
 import threading
 import subprocess
@@ -54,6 +55,10 @@ class TelnetServer:
 
 	# Handle client interaction
 	def handle_client(self, client_socket, address):
+		# Send initial packet
+		binary_fingerprint = codecs.decode(config.get_service_by_name("telnet")["welcome"], "unicode_escape").encode("latin1")
+		client_socket.send(binary_fingerprint)
+
 		# Get username and password from config
 		username = self.get_username(client_socket)
 		password = self.get_password(client_socket)

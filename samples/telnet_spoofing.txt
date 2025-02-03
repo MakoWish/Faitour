@@ -1,0 +1,24 @@
+SAMPLE TELNET SERVER HEADERS
+These are just a few samples that have been tested and spoof the noted Telnet server and version. 
+
+
+Microsoft Windows XP telnetd
+==========================================
+fingerprint: |
+    \xff\xfd\x25\xff\xfb\x01\xff\xfb\x03\xff\xfd\x27\xff\xfd\x1f\xff\xfd\x00\xff\xfb\x00\xff
+banner: |
+    Microsoft telnet server ready.
+
+Cisco router telnetd
+==========================================
+fingerprint: |
+    \xff\xfb\x01\xff\xfb\x03\xff\xfd\x18\xff\xfd\x1f
+banner: |
+    Cisco router telnetd ready!
+
+ProCurve 2600 Switch 2600-8-PWR
+==========================================
+fingerprint: |
+    \xff\xfd\x18\xff\xfb\x01\x1b[2J\x1b[?7l\x1bProCurve 2600 Switch 2600-8-PWR\r\r\nSoftware revision 1.2.3\r\r\n
+banner: |
+    Welcome!
