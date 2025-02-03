@@ -143,6 +143,18 @@
     },
     {
       "rename": {
+        "description": "Rename faitour.url to url",
+        "tag": "rename_faitour_url",
+        "if": "ctx.faitour?.url != null",
+        "field": "faitour.url",
+        "target_field": "url",
+        "override": true,
+        "ignore_missing": true,
+        "ignore_failure": true
+      }
+    },
+    {
+      "rename": {
         "description": "Rename message to event.original",
         "tag": "rename_message",
         "if": "ctx.event?.original == null",
