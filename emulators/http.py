@@ -102,15 +102,12 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 			self.wfile.write(file.read().encode("utf-8"))
 
 	def do_GET(self):
-		if self.path == "/" or self.path == "/login.html":
-			# Serve the login HTML page
-			self.serve_page("GET", 200, "/login.html")
-		elif self.path.endswith("README.md"):
+		if self.path.endswith("README.md"):
 			# Explicitly return 404 for any README.md files
 			self.send_error_page(404)
 		elif os.path.exists(f"{self.http_root}/{self.path}"):
 			if os.path.isfile(f"{self.http_root}/{self.path}"):
-				# Check to see if this should be a protected document
+				# Check to see if this is a protected document
 				with open(f"{self.http_root}/{self.path}", "r") as file:
 					if "PROTECTED" in file.readline().strip():
 						protected = True
@@ -182,8 +179,8 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 			cookie = SimpleCookie()
 			cookie["session"] = "authenticated"  # This is intentionally insecure
 			cookie["session"]["httponly"] = True
+			cookie["session"]["max-age"] = 3600  # 1 hour
 			self.send_response(200)
-			#self.set_common_headers()
 			self.send_header("Server", config.get_service_by_name("http")["server_header"])
 			self.send_header("Content-type", "text/html")
 			for morsel in cookie.values():
