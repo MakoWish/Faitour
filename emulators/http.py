@@ -69,7 +69,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		return False
 
 	def send_error_page(self, response_code: int):
-		logger.info(f'"type":["connection","{type}","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"http_get","reason":"HTTP GET Request","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"GET"}},"response":{{"status_code":{response_code}}}}},"url":{{"full":"{self.get_full_url()}","path":"{self.path}"')
+		logger.info(f'"type":["connection","denied","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"http_get","reason":"HTTP GET Request","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"GET"}},"response":{{"status_code":{response_code}}}}},"url":{{"full":"{self.get_full_url()}","path":"{self.path}"')
 		self.send_response(response_code)
 		self.send_header("Content-type", "text/html")
 		#self.set_common_headers()
