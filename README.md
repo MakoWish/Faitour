@@ -134,22 +134,22 @@ If you would like to contribute to this project, please first open an issue with
 
 ### Test and Finalize Modules
 
-[X] - FTP
-[ ] - SSH
-[X] - Telnet
-[X] - HTTP
-[ ] - RPC
-[ ] - NetBIOS
-[ ] - SNMP
-[X] - HTTPS
-[ ] - SMB
-[ ] - MSSQL
-[ ] - MySQL
-[ ] - RDP
-[ ] - PostgreSQL
+- [X] FTP
+- [ ] SSH
+- [X] Telnet
+- [X] HTTP
+- [ ] RPC
+- [ ] NetBIOS
+- [ ] SNMP
+- [X] HTTPS
+- [ ] SMB
+- [ ] MSSQL
+- [ ] MySQL
+- [ ] RDP
+- [ ] PostgreSQL
 
 ### Elastic Integration
 
-[X] - Ingest Pipeline
-[X] - Security Detection Rules
-[ ] - Create and submit official Elastic Integration
+- [X] Ingest Pipeline
+- [X] Security Detection Rules
+- [ ] Create and submit official Elastic Integration
