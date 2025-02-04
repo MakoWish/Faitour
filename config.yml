@@ -58,21 +58,26 @@ services:
     port: 21
     username: admin
     password: admin
-    fingerprint: |
-        Microsoft FTP Server
+    system_type: Windows    # Returns on "SYST" call (Windows, Unix, Linux, etc.)
+    banner: |
+        IIS 3.2 FTP
   - name: ssh
     enabled: False
     port: 22
     username: admin
     password: admin
+    login_banner: |
+        **********************************\r\nThis is a private server!\r\nUnauthorized access is prohibited!\r\n**********************************
     fingerprint: |
-        SSH-2.0-OpenSSH_for_Windows_9.5\r\n
+        SSH-2.0-OpenSSH_for_Windows_9.5
   - name: telnet
     enabled: True
     port: 23
     username: admin
     password: admin
     allow_anonymous: True
+    fingerprint: |
+        \xff\xfd\x25\xff\xfb\x01\xff\xfb\x03\xff\xfd\x27\xff\xfd\x1f\xff\xfd\x00\xff\xfb\x00\xff
     banner: |
         Microsoft telnet server ready.
   - name: http
@@ -81,9 +86,9 @@ services:
     username: admin   # Also applies to HTTPS
     password: admin   # Also applies to HTTPS
     default_doc: index.html   # Also applies to HTTPS
-    server_header: Microsoft-IIS/3.1
+    server_header: Microsoft-IIS/3.2
     fingerprint: |
-        HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/10.0\r\n
+        HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/3.2\r\n
   - name: rpc
     enabled: False
     port: 135
@@ -106,8 +111,9 @@ services:
     username: # Set under HTTP
     password: # Set under HTTP
     default_doc: # Set under HTTP
+    server_header: # Set under HTTP
     fingerprint: |
-        HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/10.0\r\n
+        HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/3.2\r\n
   - name: smb
     enabled: False
     port: 445
