@@ -132,6 +132,24 @@ If you would like to contribute to this project, please first open an issue with
 
 ## To Do
 
-* Change services like RPC, RDP, MSSQL, MySQL, and PostgreSQL to be less of emulators and more just fingerprint spoofers.
-* Create and submit Elastic Agent integration for official release.
-* Create sample Elastic Security detection rules for alerting on honeypot triggers.
+### Test and Finalize Modules
+
+[X] - FTP
+[ ] - SSH
+[X] - Telnet
+[X] - HTTP
+[ ] - RPC
+[ ] - NetBIOS
+[ ] - SNMP
+[X] - HTTPS
+[ ] - SMB
+[ ] - MSSQL
+[ ] - MySQL
+[ ] - RDP
+[ ] - PostgreSQL
+
+### Elastic Integration
+
+[X] - Ingest Pipeline
+[X] - Security Detection Rules
+[ ] - Create and submit official Elastic Integration
