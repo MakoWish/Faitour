@@ -16,7 +16,7 @@ def handle_packet(nfq_packet):
 	try:
 		packet = IP(nfq_packet.get_payload())
 	except Exception as e:
-		logger.error(f'"type":["protocol","error"],"kind":"event","category":["network"],"dataset":"application","action":"intercept_packet","reason":"Failed to get packet payload","outcome":"failure"}},"error":{{"message":"{e}"')
+		logger.error(f'"type":["protocol","error"],"kind":"event","category":["network"],"provider":"application","action":"intercept_packet","reason":"Failed to get packet payload","outcome":"failure"}},"error":{{"message":"{e}"')
 		nfq_packet.accept()
 		return 1
 
@@ -36,7 +36,7 @@ def handle_packet(nfq_packet):
 
 				if (tcp.flags == "S" and tcp.ack == 0):
 					if log_tcp_syn:
-						logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"honeypot","action":"intercept_packet","reason":"SYN packet received","outcome":"success"}},"source":{{"ip":"{ip.src}","port":{tcp.sport}}},"destination":{{"ip":"{ip.dst}","port":{tcp.dport}')
+						logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"provider":"honeypot","action":"intercept_packet","reason":"SYN packet received","outcome":"success"}},"source":{{"ip":"{ip.src}","port":{tcp.sport}}},"destination":{{"ip":"{ip.dst}","port":{tcp.dport}')
 				# Accept the packet
 				nfq_packet.accept()
 
@@ -56,15 +56,15 @@ def handle_packet(nfq_packet):
 
 			else:
 				# Unable to determine packet details. Forward it...
-				logger.debug(f'"type":["connection","protocol","info"],"kind":"event","category":["network"],"dataset":"application","action":"intercept_packet","reason":"No current handler for protocol {ip.proto} from {ip.src}","outcome":"success"')
+				logger.debug(f'"type":["connection","protocol","info"],"kind":"event","category":["network"],"provider":"application","action":"intercept_packet","reason":"No current handler for protocol {ip.proto} from {ip.src}","outcome":"success"')
 				nfq_packet.accept()
 
 		else:
-			logger.debug(f'"type":["connection","protocol","info"],"kind":"event","category":["network"],"dataset":"application","action":"intercept_packet","reason":"Non-IP packet received","outcome":"success"')
+			logger.debug(f'"type":["connection","protocol","info"],"kind":"event","category":["network"],"provider":"application","action":"intercept_packet","reason":"Non-IP packet received","outcome":"success"')
 			nfq_packet.accept()
 
 	except Exception as e:
-		logger.error(f'"type":["error"],"kind":"event","category":["network"],"dataset":"application","action":"intercept_packet","reason":"{e}","outcome":"failure"}},"error":{{"message":"{e}"')
+		logger.error(f'"type":["error"],"kind":"event","category":["network"],"provider":"application","action":"intercept_packet","reason":"{e}","outcome":"failure"}},"error":{{"message":"{e}"')
 		nfq_packet.accept()
 		return 1
 
@@ -108,27 +108,27 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 						queue_size = int(columns[2])  # Third column is the queue size
 
 						if queue_size > (max_queue_size - 100):
-							logger.warn(f'"type":["info"],"kind":"metric","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"NFQUEUE size {queue_size} approaching threshold of {max_queue_size}","outcome":"unknown"')
+							logger.warn(f'"type":["info"],"kind":"metric","category":["process"],"provider":"application","action":"monitor_nfqueue_queue_size","reason":"NFQUEUE size {queue_size} approaching threshold of {max_queue_size}","outcome":"unknown"')
 
 							# Unbind and re-bind the NFQUEUE
-							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"application","action":"bind_nfqueue","reason":"NFQUEUE re-binding due to queue size nearing threshold","outcome":"unknown"')
+							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"provider":"application","action":"bind_nfqueue","reason":"NFQUEUE re-binding due to queue size nearing threshold","outcome":"unknown"')
 							nfqueue.unbind()
 							nfqueue.bind(2, handle_packet, max_len=queue_size)
-							logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"application","action":"bind_nfqueue","reason":"NFQUEUE re-bound due to queue size nearing threshold","outcome":"success"')
+							logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"provider":"application","action":"bind_nfqueue","reason":"NFQUEUE re-bound due to queue size nearing threshold","outcome":"success"')
 					else:
-						logger.warn(f'"type":["info"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"Unexpected format in /proc/net/netfilter/nfnetlink_queue","outcome":"unknown"')
+						logger.warn(f'"type":["info"],"kind":"event","category":["process"],"provider":"application","action":"monitor_nfqueue_queue_size","reason":"Unexpected format in /proc/net/netfilter/nfnetlink_queue","outcome":"unknown"')
 				else:
-					logger.warn(f'"type":["info"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue is empty or unreadable","outcome":"unknown"')
+					logger.warn(f'"type":["info"],"kind":"event","category":["process"],"provider":"application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue is empty or unreadable","outcome":"unknown"')
 		except FileNotFoundError as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue not found","outcome":"failure"}},"error":{{"message":"{e}"}}')
+			logger.error(f'"type":["error"],"kind":"event","category":["process"],"provider":"application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue not found","outcome":"failure"}},"error":{{"message":"{e}"}}')
 
 			# Unbind and re-bind the NFQUEUE since it appears NFQUEUE is not running
-			logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"application","action":"bind_nfqueue","reason":"NFQUEUE re-binding due to queue size exceeding threshold","outcome":"unknown"')
+			logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"provider":"application","action":"bind_nfqueue","reason":"NFQUEUE re-binding due to queue size exceeding threshold","outcome":"unknown"')
 			nfqueue.unbind()
 			nfqueue.bind(2, handle_packet, max_len=queue_size)
-			logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"application","action":"bind_nfqueue","reason":"NFQUEUE re-bound due to queue size exceeding threshold","outcome":"success"')
+			logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"provider":"application","action":"bind_nfqueue","reason":"NFQUEUE re-bound due to queue size exceeding threshold","outcome":"success"')
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"application","action":"monitor_nfqueue_queue_size","reason":"Error monitoring NFQUEUE queue size","outcome":"failure"}},"error":{{"message":"{e}"}}')
+			logger.error(f'"type":["error"],"kind":"event","category":["process"],"provider":"application","action":"monitor_nfqueue_queue_size","reason":"Error monitoring NFQUEUE queue size","outcome":"failure"}},"error":{{"message":"{e}"}}')
 
 		# Sleep for the specified interval before checking again
 		time.sleep(interval)
@@ -140,9 +140,9 @@ def start(max_queue_size):
 	log_tcp_syn = config.get_value("syn_logging")["tcp"]
 
 	# Set our iptables and network rules
-	logger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"application","action":"start","reason":"Network and iptables rules are being set","outcome":"unknown"')
+	logger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"provider":"application","action":"start","reason":"Network and iptables rules are being set","outcome":"unknown"')
 	set_rules()
-	logger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"application","action":"end","reason":"Network and iptables rules have been set","outcome":"success"')
+	logger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"provider":"application","action":"end","reason":"Network and iptables rules have been set","outcome":"success"')
 
 	# Create a NetfilterQueue object and bind it to queue number 2
 	nfqueue = NetfilterQueue()
@@ -159,28 +159,28 @@ def start(max_queue_size):
 
 	try:
 		# Run the main nfqueue socket in the main thread
-		logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"application","action":"start","reason":"NFQUEUE socket is now intercepting packets","outcome":"success"')
+		logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"provider":"application","action":"start","reason":"NFQUEUE socket is now intercepting packets","outcome":"success"')
 		nfqueue.run_socket(s)
 
 	except KeyboardInterrupt:
-		logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"application","action":"end","reason":"Shutting down Faitour due to keyboard interrupt","outcome":"success"')
+		logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"provider":"application","action":"end","reason":"Shutting down Faitour due to keyboard interrupt","outcome":"success"')
 	except Exception as e:
-		logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"application","action":"end","reason":"Shutting down Faitour due to unknown exception","outcome":"failure"}},"error":{{"message":"{e}"}}')
+		logger.error(f'"type":["error"],"kind":"event","category":["process"],"provider":"application","action":"end","reason":"Shutting down Faitour due to unknown exception","outcome":"failure"}},"error":{{"message":"{e}"}}')
 	finally:
 		# Clean up resources
-		logger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"application","action":"start","reason":"Network and iptables rules are being reset","outcome":"unknown"')
+		logger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"provider":"application","action":"start","reason":"Network and iptables rules are being reset","outcome":"unknown"')
 		flush_rules()
-		logger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"application","action":"end","reason":"Network and iptables rules have been reset","outcome":"success"')
+		logger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"provider":"application","action":"end","reason":"Network and iptables rules have been reset","outcome":"success"')
 
-		logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"application","action":"start","reason":"Unbinding NFQUEUE","outcome":"unknown"')
+		logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"provider":"application","action":"start","reason":"Unbinding NFQUEUE","outcome":"unknown"')
 		nfqueue.unbind()
-		logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"application","action":"end","reason":"NFQUEUE has been unbound","outcome":"success"')
+		logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"provider":"application","action":"end","reason":"NFQUEUE has been unbound","outcome":"success"')
 
 		# Signal the monitor thread to stop and wait for it to finish
 		if monitor_thread.is_alive():
-			logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"application","action":"start","reason":"Terminating NFQUEUE monitor","outcome":"unknown"')
+			logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"provider":"application","action":"start","reason":"Terminating NFQUEUE monitor","outcome":"unknown"')
 			stop_event.set()
 			monitor_thread.join()
-			logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"application","action":"end","reason":"Terminated NFQUEUE monitor","outcome":"success"')
+			logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"provider":"application","action":"end","reason":"Terminated NFQUEUE monitor","outcome":"success"')
 
 	return 0

@@ -5,9 +5,12 @@ description: Application configuration file for Faitour 2.0
 network:
   max_queue_size: 10240
   adapter:
-    name: change_me
-    ip: 10.0.0.0
-    mac: 00:11:22:33:44:55
+#    name: change_me
+#    ip: 10.0.0.0
+#    mac: 00:11:22:33:44:55
+    name: enp6s18
+    ip: 192.168.200.47
+    mac: bc:24:11:fe:c7:3e
 
 # Logging configuration
 logging:
@@ -21,7 +24,7 @@ logging:
     size: 10000000
     count: 10
 
-# Certificate details for SSH and HTTPS
+# Certificate details for HTTPS (and RDP?)
 tls:
   country_name: US
   state: California
@@ -29,7 +32,7 @@ tls:
   organization: Example Org
   common_name: foo.example.org
 
-# Logging SYN requests will help with detecting port scans
+# Logging SYN requests will allow port scan detection in Elastic
 syn_logging:
   tcp: True
 
@@ -62,12 +65,13 @@ services:
     banner: |
         IIS 3.2 FTP
   - name: ssh
-    enabled: False
+    enabled: True
     port: 22
     username: admin
     password: admin
+    hostname: hrrecords   # Shown on the bash prompt
     login_banner: |
-        **********************************\r\nThis is a private server!\r\nUnauthorized access is prohibited!\r\n**********************************
+        \r\n**********************************\r\nThis is a private server!\r\nUnauthorized access is prohibited!\r\n**********************************\r\n
     fingerprint: |
         SSH-2.0-OpenSSH_for_Windows_9.5
   - name: telnet
