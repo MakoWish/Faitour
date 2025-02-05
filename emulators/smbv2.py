@@ -24,28 +24,37 @@ class SMBv2Server:
 		}
 
 	def start(self):
-		logger.info(f'"type":["start"],"kind":"event","category":["process"],"provider":"application","action":"start","reason":"SMBv2 server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
+		logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"SMBv2 server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.running = True
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.server_socket.bind((self.host_ip, self.host_port))
 		self.server_socket.listen(5)
+		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"SMBv2 server emulator has started on {self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 		while self.running:
 			try:
 				client_socket, client_address = self.server_socket.accept()
 				client_ip = client_address[0]
 				client_port = client_address[1]
-				logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"provider":"honeypot","action":"start","reason":"SMBv2 connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"start","reason":"SMBv2 connection started","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 				threading.Thread(target=self.handle_client, args=(client_socket,)).start()
+				logger.info(f'"type":["connection","end"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"start","reason":"SMBv2 connection ended","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			except Exception as e:
-				logger.error(f'"type":["error"],"kind":"event","category":["process"],"provider":"application","action":"start","reason":"Error accepting SMBv2 connection","outcome":"failure"}},"error":{{"message":"{e}"')
+				logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Error accepting SMBv2 connection","outcome":"failure"}},"error":{{"message":"{e}"')
 
 	def stop(self):
-		logger.info(f'"type":["end"],"kind":"event","category":["process"],"provider":"application","action":"stop","reason":"SMBv2 server emulator is stopping","outcome":"success"')
-		if self.running:
+		if not self.running:
+			return
+
+		try:
+			logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SMBv2 server emulator is stopping","outcome":"unknown"')
+			if self.running:
+				self.server_socket.close()
+				self.server_socket = None
 			self.running = False
-			self.server_socket.close()
-		logger.info(f'"type":["end"],"kind":"event","category":["process"],"provider":"application","action":"stop","reason":"SMBv2 server emulator has stopped","outcome":"success"')
+			logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SMBv2 server emulator has stopped","outcome":"success"')
+		except Exception as e:
+			logger.error(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"SMBv2 failed to stop server","outcome":"failure"}},"error":{{"message":"{e}"')
 
 	def handle_client(self, client_socket):
 		try:
@@ -63,12 +72,12 @@ class SMBv2Server:
 					response = "Received unsupported binary data.\n"
 				client_socket.sendall(response.encode("utf-8"))
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"provider":"application","action":"handle_client","reason":"Error handling client","outcome":"failure"}},"error":{{"message":"{e}"')
+			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_client","reason":"Error handling client","outcome":"failure"}},"error":{{"message":"{e}"')
 		finally:
 			client_socket.close()
 
 	def process_request(self, request):
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"provider":"honeypot","action":"process_request","reason":"Received request","outcome":"success"')
+		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"process_request","reason":"Received request","outcome":"success"')
 		parts = request.split()
 
 		if len(parts) == 0:

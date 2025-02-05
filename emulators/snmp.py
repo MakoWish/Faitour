@@ -20,7 +20,7 @@ class SNMPServer:
 	# Configure SNMP server with a community string and transport.
 	def configure(self):
 		try:
-			logger.info(f'"type":["start"],"kind":"event","category":["process"],"provider":"application","action":"configure","reason":"SNMP server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
+			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"configure","reason":"SNMP server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 			# Add SNMPv2c community to the engine
 			config.addV1System(self.snmp_engine, 'my-area', self.community)
@@ -49,7 +49,7 @@ class SNMPServer:
 			cmdrsp.BulkCommandResponder(self.snmp_engine, self.snmp_context)
 
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"provider":"application","action":"configure","reason":"Error configuring SNMP server","outcome":"failure"}},"error":{{"message":"{e}"')
+			logger.error(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"configure","reason":"Error configuring SNMP server","outcome":"failure"}},"error":{{"message":"{e}"')
 			raise
 		
 	# Start the SNMP server and handle requests asynchronously.
@@ -59,23 +59,23 @@ class SNMPServer:
 			dispatcher = self.snmp_engine.transportDispatcher
 
 			if dispatcher is None:
-				logger.error(f'"type":["error"],"kind":"event","category":["process"],"provider":"application","action":"configure","reason":"Transport dispatcher not initialized","outcome":"failure"}},"error":{{"message":"Transport dispatcher not initialized"')
+				logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"configure","reason":"Transport dispatcher not initialized","outcome":"failure"}},"error":{{"message":"Transport dispatcher not initialized"')
 
 			# Job Started signals that dispatcher will process requests
 			dispatcher.jobStarted(1)
 			dispatcher.runDispatcher()
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"provider":"application","action":"start","reason":"SNMP server emulator error","outcome":"failure"}},"error":{{"message":"{e}"')
+			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"SNMP server emulator error","outcome":"failure"}},"error":{{"message":"{e}"')
 	
 	# Stop the SNMP server gracefully.
 	def stop(self):
 		try:
-			logger.info(f'"type":["end"],"kind":"event","category":["process"],"provider":"application","action":"stop","reason":"SNMP server emulator is stopping","outcome":"success"')
+			logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SNMP server emulator is stopping","outcome":"success"')
 			self.running = False
 			dispatcher = self.snmp_engine.transportDispatcher
 
 			if dispatcher:
 				dispatcher.closeDispatcher()
-				logger.info(f'"type":["end"],"kind":"event","category":["process"],"provider":"application","action":"stop","reason":"SNMP server emulator has stopped","outcome":"success"')
+				logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SNMP server emulator has stopped","outcome":"success"')
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"provider":"application","action":"stop","reason":"SNMP server emulator failed to stop","outcome":"failure"}},"error":{{"message":"{e}"')
+			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SNMP server emulator failed to stop","outcome":"failure"}},"error":{{"message":"{e}"')

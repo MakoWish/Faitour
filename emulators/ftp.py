@@ -21,55 +21,55 @@ class CustomFTPHandler(FTPHandler):
 		self.respond(f"215 {config.get_service_by_name("ftp")["system_type"]}")
 
 	def send_welcome(self):
-		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"provider":"honeypot","action":"send_welcome","reason":"FTP banner sent","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"send_welcome","reason":"FTP banner sent","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.respond(config.get_service_by_name("ftp")["banner"])
 
 	def on_connect(self):
-		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"provider":"honeypot","action":"on_connect","reason":"FTP Connection established","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"on_connect","reason":"FTP Connection established","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 	def on_disconnect(self):
-		logger.info(f'"type":["connection","end"],"kind":"alert","category":["network","intrusion_detection"],"provider":"honeypot","action":"on_disconnect","reason":"FTP Connection closed","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.info(f'"type":["connection","end"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"on_disconnect","reason":"FTP Connection closed","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 	def on_login(self, username, ):
-		logger.info(f'"type":["user","connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"provider":"honeypot","action":"on_login","reason":"FTP User logged in","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}"')
+		logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"on_login","reason":"FTP User logged in","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}"')
 
 	def on_login_failed(self, username, password):
-		logger.info(f'"type":["user","connection","start","denied"],"kind":"alert","category":["network","intrusion_detection"],"provider":"honeypot","action":"on_login_failed","reason":"FTP failed login","outcome":"failure"}},"source":{{"ip":"{self.remote_ip}","port":"{self.remote_port}"}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"')
+		logger.info(f'"type":["connection","start","denied"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"on_login_failed","reason":"FTP failed login","outcome":"failure"}},"source":{{"ip":"{self.remote_ip}","port":"{self.remote_port}"}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"')
 
 	def on_logout(self, username):
-		logger.info(f'"type":["user","connection","end"],"kind":"alert","category":["network","intrusion_detection"],"provider":"honeypot","action":"on_logout","reason":"FTP User logged out","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}"')
+		logger.info(f'"type":["connection","end"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"on_logout","reason":"FTP User logged out","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}"')
 
 	def ftp_LIST(self, path):
-		logger.info(f'"type":["access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"provider":"honeypot","action":"ftp_LIST","reason":"Directory listing for {path}","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"directory":"{path}"')
+		logger.info(f'"type":["access"],"kind":"alert","category":["file","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"ftp_LIST","reason":"Directory listing for {path}","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"directory":"{path}"')
 		super().ftp_LIST(path)
 
 	def ftp_DELE(self, path):
 		if path == "README.txt":
-			logger.info(f'"type":["deletion","denied"],"kind":"alert","category":["file","intrusion_detection"],"provider":"honeypot","action":"ftp_DELE","reason":"File delete requested: {path}","outcome":"failure"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{path}"')
+			logger.info(f'"type":["deletion"],"kind":"alert","category":["file","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"ftp_DELE","reason":"File delete requested: {path}","outcome":"failure"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{path}"')
 			self.respond("550 Permission denied.")
 		else:
-			logger.info(f'"type":["deletion","allowed"],"kind":"alert","category":["file","intrusion_detection"],"provider":"honeypot","action":"ftp_DELE","reason":"File delete requested: {path}","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{path}"')
+			logger.info(f'"type":["deletion"],"kind":"alert","category":["file","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"ftp_DELE","reason":"File delete requested: {path}","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{path}"')
 			super().ftp_DELE(path)
 
 	def ftp_MKD(self, path):
-		logger.info(f'"type":["creation","allowed"],"kind":"alert","category":["file","intrusion_detection"],"provider":"honeypot","action":"ftp_MKD","reason":"Directory creation requested: {path}","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"directory":"{path}"')
+		logger.info(f'"type":["creation"],"kind":"alert","category":["file","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"ftp_MKD","reason":"Directory creation requested: {path}","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"directory":"{path}"')
 		super().ftp_MKD(path)
 
 	def ftp_RMD(self, path):
-		logger.info(f'"type":["deletion","allowed"],"kind":"alert","category":["file","intrusion_detection"],"provider":"honeypot","action":"ftp_RMD","reason":"Directory deletion requested: {path}","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"directory":"{path}"')
+		logger.info(f'"type":["deletion"],"kind":"alert","category":["file","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"ftp_RMD","reason":"Directory deletion requested: {path}","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"directory":"{path}"')
 		super().ftp_RMD(path)
 
 	def on_file_sent(self, file):
-		logger.info(f'"type":["info","access"],"kind":"alert","category":["file","intrusion_detection"],"provider":"honeypot","action":"on_file_sent","reason":"FTP File sent","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{file}"')
+		logger.info(f'"type":["access"],"kind":"alert","category":["file","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"on_file_sent","reason":"FTP File sent","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{file}"')
 
 	def on_file_received(self, file):
-		logger.info(f'"type":["info","creation"],"kind":"alert","category":["file","intrusion_detection"],"provider":"honeypot","action":"on_file_received","reason":"FTP File received","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{file}"')
+		logger.info(f'"type":["creation"],"kind":"alert","category":["file","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"on_file_received","reason":"FTP File received","outcome":"success"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{file}"')
 
 	def on_incomplete_file_sent(self, file):
-		logger.info(f'"type":["error","access"],"kind":"alert","category":["file","intrusion_detection"],"provider":"honeypot","action":"on_incomplete_file_sent","reason":"FTP Incomplete file sent","outcome":"failure"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{file}"')
+		logger.info(f'"type":["access"],"kind":"alert","category":["file","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"on_incomplete_file_sent","reason":"FTP Incomplete file sent","outcome":"failure"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{file}"')
 
 	def on_incomplete_file_received(self, file):
-		logger.info(f'"type":["error","creation"],"kind":"alert","category":["file","intrusion_detection"],"provider":"honeypot","action":"on_incomplete_file_received","reason":"FTP Incomplete file received","outcome":"failure"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{file}"')
+		logger.info(f'"type":["creation"],"kind":"alert","category":["file","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"on_incomplete_file_received","reason":"FTP Incomplete file received","outcome":"failure"}},"source":{{"ip":"{self.remote_ip}","port":{self.remote_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"file":{{"name":"{file}"')
 
 class FTPServerEmulator(threading.Thread):
 	def __init__(self):
@@ -113,14 +113,15 @@ class FTPServerEmulator(threading.Thread):
 	# Start the FTP server
 	def start(self):
 		self.setup_server()
-		logger.info(f'"type":["start"],"kind":"event","category":["process"],"provider":"application","action":"ftp_start","reason":"FTP server emulator is starting","outcome":"success"}},"host":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"FTP server emulator is starting","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.running = True
 		self.server.serve_forever()
+		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"FTP server emulator has started","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 	# Stop the FTP server
 	def stop(self):
 		if self.server:
-			logger.info(f'"type":["end"],"kind":"event","category":["process"],"provider":"application","action":"ftp_start","reason":"FTP server emulator is stopping","outcome":"success"}},"host":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"FTP server emulator is stopping","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			self.running = False
 			self.server.close_all()
-			logger.info(f'"type":["end"],"kind":"event","category":["process"],"provider":"application","action":"ftp_start","reason":"FTP server emulator has stopped","outcome":"success"}},"host":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"FTP server emulator has stopped","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
