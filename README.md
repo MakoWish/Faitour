@@ -135,18 +135,18 @@ If you would like to contribute to this project, please first open an issue with
 ### Test and Finalize Modules
 
 - [X] FTP
-- [ ] SSH
+- [ ] SSH (work on interpreted commands)
 - [X] Telnet
 - [X] HTTP
-- [ ] RPC
-- [ ] NetBIOS
-- [ ] SNMP
+- [ ] RPC (verify fingerprinting)
+- [ ] NetBIOS (verify fingerprinting)
+- [ ] SNMP (work on MIB's)
 - [X] HTTPS
 - [ ] SMB
-- [ ] MSSQL
-- [ ] MySQL
-- [ ] RDP
-- [ ] PostgreSQL
+- [ ] MSSQL (verify fingerprinting)
+- [ ] MySQL (verify fingerprinting)
+- [ ] RDP (verify fingerprinting)
+- [ ] PostgreSQL (verify fingerprinting)
 
 ### Elastic Integration
 
