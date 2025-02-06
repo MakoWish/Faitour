@@ -154,14 +154,11 @@ If you would like to contribute to this project, please first open an issue with
 - [ ] SMB
     - Work on actual access to SMB
     - Use file system like Telnet, FTP, and SSH?
-- [ ] MSSQL
-    - Verify fingerprinting
-- [ ] MySQL
-    - Verify fingerprinting
+- [X] MSSQL
+- [X] MySQL
 - [ ] RDP
     - Verify fingerprinting
-- [ ] PostgreSQL
-    - Verify fingerprinting
+- [X] PostgreSQL
 
 ### Elastic Integration
 
