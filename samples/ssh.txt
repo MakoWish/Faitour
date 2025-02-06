@@ -1,0 +1,15 @@
+SAMPLE TELNET SERVER HEADERS
+These are just a few samples that have been tested and spoof the noted SSH server and version. 
+
+
+OpenSSH 7.9 on Ubuntu 18.04
+==========================================
+SSH-2.0-OpenSSH_7.9 Ubuntu 18.04 LTS
+
+OpenSSH 9.5 for Windows 9.5
+==========================================
+SSH-2.0-OpenSSH_for_Windows_9.5
+
+OpenSSH 8.2 for Raspbian Buster
+==========================================
+SSH-2.0-OpenSSH_8.2 Raspbian-Buster

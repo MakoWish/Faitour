@@ -1,0 +1,28 @@
+SAMPLE SMB FINGERPRINTS
+These are just a few samples that have been tested and spoof the noted SMB server and version. 
+
+
+Microsoft Windows 2000 microsoft-ds
+==========================================
+fingerprint: |
+    \0\0\0.\xffSMBr\0\0\0\0\x88\x01@\0\0\0\0\0\0\0\0\0\0\0\0\0\0@\x06\0\0\x01\0\x11\x07\0.2\0\x01\0\x04A\0\0\0\0\x01\0\0\0\0\0\xfd\xf3\0\0
+
+Microsoft Windows XP microsoft-ds
+==========================================
+fingerprint: |
+    \0\0\0.\xffSMBr\0\0\0\0\x88\x01@\0\0\0\0\0\0\0\0\0\0\0\0\0\0@\x06\0\0\x01\0\x11\x07\0.\n\0\x01\0\x04\x11\0\0\0\0\x01\0\0\0\0\0\xfd\xe3\0\0
+
+Microsoft Windows 2003 or 2008 microsoft-ds
+==========================================
+fingerprint: |
+    \0\0\0.\xffSMBr\0\0\0\0\x88\x01@\0\0\0\0\0\0\0\0\0\0\0\0\0\0@\x06\0\0\x01\0\x11\x07\0.2\0\x01\0\x04.\0\0\0\0\x01\0\0\0\0\0\xfd\xf3\x01\0
+
+Microsoft Windows Server 2008 R2 microsoft-ds
+==========================================
+fingerprint: |
+    \0\0\0a\xffSMBr\0\0\0\0\x88\x01@\0\0\0\0\0\0\0\0\0\0\0\0\0\0@\x06\0\0\x01\0\x11\x07\0a2\0\x01\0\x04A\0\0\0\0\x01\0\0\0\0\0\xfd\xe3\x01\0ABCDEFGHIJKLMNOPQRSTU\0\0\0\0
+
+Microsoft Windows Server 2008 R2 - 2012 microsoft-ds
+==========================================
+fingerprint: |
+    \0\0\0.\xffSMBr\0\0\0\0\x88\x01@\0\0\0\0\0\0\0\0\0\0\0\0\0\0@\x06\0\0\x01\0\x11\x07\0.2\0\x01\0\x04A\0\0\0\0\x01\0\0\0\0\0\xfc\xe3\x01\0
