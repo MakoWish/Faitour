@@ -63,8 +63,8 @@ class TelnetServer:
 		client_port = address[1]
 
 		# If initial data does not start with 0xFF, this is likely an NMAP service fingerprinting scan
-		initial_data = client_socket.recv(1024)
-		if not initial_data or initial_data[0] != 0xff:
+		data = data.recv(1024)
+		if not data or data[0] != 0xff:
 			logger.warning(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_client","reason":"Initial client data appears to be NMAP service fingerprinting attempt","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 			# Send out spoofed fingerprint
