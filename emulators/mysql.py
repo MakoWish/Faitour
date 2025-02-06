@@ -1,7 +1,8 @@
-from utils.logger import logger
-import utils.config as config
+import codecs
 import socket
 import threading
+from utils.logger import logger
+import utils.config as config
 
 class MySQLEmulator:
 	def __init__(self):
@@ -18,26 +19,31 @@ class MySQLEmulator:
 
 		logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"MySQL server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Enable port reuse
 		self.server_socket.bind((self.host_ip, self.host_port))
 		self.server_socket.listen(5)
 		self.running = True
 		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"MySQL server emulator has started on {self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 		while True:
-			client_socket, addr = self.server_socket.accept()
-			threading.Thread(target=self.handle_client, args=(client_socket, addr)).start()
+			client_socket, address = self.server_socket.accept()
+			threading.Thread(target=self.handle_client, args=(client_socket, address)).start()
 
 	# Handle client interactions.
-	def handle_client(self, client_socket, addr):
+	def handle_client(self, client_socket, address):
 		try:
-			client_ip = addr[0]
-			client_port = addr[1]
+			client_ip = address[0]
+			client_port = address[1]
 
-			# Send a fake MySQL handshake packet
-			client_socket.sendall(self.generate_mysql_handshake())
-
-			# Receive data from the client
+			# If initial data does not start with 0xFF, this is likely an NMAP service fingerprinting scan
 			data = client_socket.recv(1024)
+			if not data or data[0] != 0xff:
+				logger.warning(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_client","reason":"Initial client data appears to be MySQL service fingerprinting attempt","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+
+				# Send out spoofed fingerprint
+				binary_fingerprint = codecs.decode(config.get_service_by_name("mysql")["fingerprint"], "unicode_escape").encode("latin1")
+				client_socket.sendall(binary_fingerprint)
+
 			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"MySQL received data","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 			# Respond to any received data with a generic error or acknowledgment
@@ -48,12 +54,6 @@ class MySQLEmulator:
 			logger.error(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_client","reason":"MySQL server emulator error","outcome":"failure"}},"error":{{"message":"{e}"')
 		finally:
 			client_socket.close()
-
-	# Generate a handshake packet that resembles a MySQL server.
-	def generate_mysql_handshake(self):
-		# Fake MySQL handshake packet (protocol version, server version, thread ID, etc.)
-		header = config.get_service_by_name("mysql")["fingerprint"].strip()
-		return header.encode('utf-8')
 
 	# Stop the server.
 	def stop(self):

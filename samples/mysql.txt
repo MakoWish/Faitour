@@ -1,0 +1,23 @@
+SAMPLE MYSQL FINGERPRINTS
+These are just a few samples that have been tested and spoof the noted MySQL server and version. 
+
+
+MySQL 3.9.1-release
+==========================================
+fingerprint: |
+    X\0\0\0\x0a3.9.1-release\0ABC\0
+
+MySQL 4.12.0-beta
+==========================================
+fingerprint: |
+    X\0\0\0\x0a4.12.0-beta\0
+
+MySQL 5.7.44
+==========================================
+fingerprint: |
+    X\0\0\0\x0a5.7.44\0
+
+MySQL 8.3.0
+==========================================
+fingerprint: |
+    X\0\0\0\x0a8.3.0\0ABC\0
