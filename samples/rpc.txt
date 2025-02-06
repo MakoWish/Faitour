@@ -1,0 +1,8 @@
+SAMPLE RPC FINGERPRINTS
+These are just a few samples that have been tested and spoof the noted RPC server and version. 
+
+
+Microsoft Windows RPC
+==========================================
+fingerprint: |
+    \x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...
