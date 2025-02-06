@@ -120,6 +120,35 @@ Once Faitour has been started, be sure to run an NMAP scan from another machine 
 
 `nmap -sS -sV -O <ip address>`
 
+Depending on how you configure Faitour, your results should look something like this:
+
+```bash
+me@TestVM:~$ sudo nmap -sV -T3 HoneyTest
+Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-02-06 14:18 MST
+Nmap scan report for HoneyTest (10.10.10.10)
+Host is up (0.41s latency).
+rDNS record for 10.10.10.10: HoneyTest.test.lab
+Not shown: 988 closed tcp ports (reset)
+PORT     STATE SERVICE        VERSION
+21/tcp   open  ftp            Microsoft IIS ftpd 3.2
+22/tcp   open  ssh            OpenSSH for_Windows_9.5 (protocol 2.0)
+23/tcp   open  telnet         Microsoft Windows XP telnetd
+80/tcp   open  http           Microsoft IIS httpd 3.2
+135/tcp  open  msrpc          Microsoft Windows RPC
+139/tcp  open  netbios-ssn    Microsoft Windows netbios-ssn
+443/tcp  open  ssl/http       Microsoft IIS httpd 3.2
+445/tcp  open  microsoft-ds   Microsoft Windows Server 2008 R2 microsoft-ds (workgroup:)
+1433/tcp open  ms-sql-s       Microsoft SQL Server 2012 11.00.5058; SP2
+3306/tcp open  mysql          MySQL 8.3.0
+3389/tcp open  ms-wbt-server?
+5432/tcp open  postgresql     PostgreSQL DB
+MAC Address: 00:11:22:33:44:55 (Unknown)
+Service Info: OSs: Windows, Windows XP; CPE: cpe:/o:microsoft:windows, cpe:/o:microsoft:windows_xp, cpe:/o:microsoft:windows_server_2008:r2
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 13.50 seconds
+```
+
 ## Elastic Integration
 
 I have included some resources within the `elastic` folder to help integrate your Faitour logs with Elastic for monitoring and alerting on honeypot activity. Please review the Elastic [README.md](./elastic/README.md) for details on installing those resources.
@@ -143,10 +172,8 @@ If you would like to contribute to this project, please first open an issue with
     - Returns from the server wrap oddly. Can this be fixed?
 - [X] Telnet
 - [X] HTTP
-- [ ] RPC
-    - Verify fingerprinting
-- [ ] NetBIOS
-    - Verify fingerprinting
+- [X] RPC
+- [X] NetBIOS
 - [ ] SNMP
     - Verify fingerprinting
     - Custom MIB's?
