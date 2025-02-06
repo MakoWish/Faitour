@@ -1,8 +1,8 @@
-# Fingerprinting Samples
+# Service Fingerprinting Samples
 
-## About
+## About these Samples
 
-Within this directory, you will find some sample fingerprints that will help you to fool NMAP scans into thinking the emulated services are the versions you choose. 
+Within this directory, you will find some sample fingerprints that will help you to fool NMAP scans into thinking the emulated services are the versions you choose. Some services only require a fingerprint, but some also include logon banners or server banners. Be sure to adjust these to your preferences when placing them into your `./config.yml`.
 
 ## Adding Fingerprints
 
