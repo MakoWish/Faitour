@@ -8,7 +8,7 @@ n. Archaic
 
 ## About
 
-Faitour 2 is a complete rewrite of [MakoWish/Faitour](https://github.com/MakoWish/Faitour). which was originally forked from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project for the inspiration. The issue with the original Faitour was that packets to any real services would be intercepted and not properly forwarded, so the services were rendered useless. This defeated the purpose of working alongside OpenCanary as it blocked all access to OpenCanary's enabled services. For this reason, I decided to start from scratch and try to create my own honeypot with some fully-functional services and detailed logging. 
+Faitour 2 is a complete rewrite of [MakoWish/Faitour](https://github.com/MakoWish/Faitour) which was originally forked from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project for the inspiration. The issue with the original Faitour was that packets to any real services would be intercepted and not properly forwarded, so the services were effectively rendered useless outside of spoofing NMAP scans. This defeated the purpose of working alongside OpenCanary as it blocked all access to OpenCanary's enabled services. For this reason, I decided to start from scratch and try to create my own honeypot with some fully-functional services and detailed logging. 
 
 The idea behind this project was to not only spoof services to NMAP scans, but also log all access attempts in a format that follows the [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html). This will make parsing the logs much easier for ingestion into Elasticsearch. Once I feel this project has matured a bit more, I will work on an [Elastic integration](https://www.elastic.co/integrations/data-integrations) to take all the work out of ingesting these logs, as well as creating Elastic Security alerts based on observed activity.
 
@@ -45,9 +45,9 @@ After installing, you will need to change the configurations before starting the
 
 You **_must_** change the default settings under `network`, or Faitour will fail to start. Ensure the adapter details match what is on your host.
 
-Optionally, configure logging to fit your needs. By default, both file and stdout logging are enabled, but you may turn either or both off. If running as a `systemd` service (default), the stdout logging will be written to the systemd journal.
+Optionally, configure logging to fit your needs. By default, both file and stdout logging are enabled, but you may turn either or both off. If running as a `systemd` service (default), the stdout logging will be written to the systemd journal. If you will be ingesting events into Elastic, file logging is required, and I suggest keeping the default location of `/var/log/faitour`. 
 
-Here is a snippet from the default `config.yml`:
+Here is a snippet from the default `config.yml` detailing the required network and logging settings:
 
 ```yaml
 ---
@@ -60,7 +60,7 @@ network:
     mac: 00:11:22:33:44:55
 
 logging:
-  level: DEBUG    # DEBUG, INFO, WARN, ERROR, CRITICAL
+  level: INFO    # DEBUG, INFO, WARN, ERROR, CRITICAL
   name: faitour
   stdout:
     enabled: True
@@ -73,21 +73,23 @@ logging:
 
 #### Operating System Fingerprint
 
-Beyond the basic network and logging configuration, you will also see details for the operating system fingerprint in your config file. By default, the operating system is set to Microsoft Windows Server 2008 R2. If you would like to change fingerprint, please reference the NMAP fingerprints databases. Note that the majority of these fingerprints contain regex patterns. You should replace those regex patterns with data that would not only be matched by those patterns, but also matches the service you are attempting to spoof.
+Beelow the basic network and logging configuration, you will also see details for the operating system fingerprint in your config file. By default, the operating system is set to Microsoft Windows Server 2008 R2. If you would like to change fingerprint, please reference the NMAP fingerprints databases or some tested examples within `./samples/operating_system.txt`.
 
-Operating System Fingerprints can be found at: https://svn.nmap.org/nmap/nmap-os-db
+NMAP's operating system fingerprints database can be found at: https://svn.nmap.org/nmap/nmap-os-db
 
 #### Service Emulators
 
-Several services are emulated that allow real interaction like FTP, Telnet, SSH, and HTTP/S (these are enabled by default) as well as others that you may enable. These services allow you to customize the port they run on, usernames:passwords that grant access to those services, and more. Many of these services provide file system access that you may customize to your liking. This may be a custom web page or pages in `./emulators/web_root`, or files in `./emulators/ftp_root` or `./emulators/telnet_root`.
+Several services may be emulated, and some offer real interaction like FTP, Telnet, SSH, and HTTP(S) (these are enabled by default) as well as others that you may enable. These services allow you to customize the port they run on, usernames:passwords that grant access to those services, and more. Many of these services provide file system access that you may customize to your liking. This may be a custom web page or pages in `./emulators/web_root`, or files in `./emulators/ftp_root` or `./emulators/telnet_root`.
 
 Service Fingerprints can be found at: https://svn.nmap.org/nmap/nmap-service-probes
 
+Note that the majority of these fingerprints contain regex patterns. You should replace those regex patterns with data that would not only be matched by those patterns, but also matches the service you are attempting to spoof.
+
 **_IMPORTANT_**: 
 
-1. If you are going to enable the SSH service, you will need to first change the port your actually SSH is running on. Choose an obscure port number that will not show up on the typical NMAP scan. Ideally, disable SSH and rely on console access only.
+1. If you are going to enable the SSH service, you will need to first change the port your actual SSH service is running on. Choose an obscure port number that will not show up on the typical NMAP scan. Ideally, disable SSH and rely on console access only.
 2. If setting up a custom web page, ensure the web form attributes remain the same.
-3. If using HTTPS, be sure to update the `tls` settings in `config.yml` to use a more believable name than the default "foo.example.org". Optionally, you may use your own custom certificate. The key must be placed in `./emulators/http_key.pem`, and the cert/chain must be placed in `./emulator/http_cert.pem`.
+3. If using HTTPS, be sure to update the `tls` settings in `config.yml` to generate a more believable certificate name than the default "foo.example.org". Optionally, you may use your own custom certificate. The key must be placed in `./emulators/http_key.pem`, and the cert/chain must be placed in `./emulator/http_cert.pem`.
     1. If you change the `tls` settings in `config.yml`, be sure to delete any `*.pem` files in `./emulators` so new ones will be generated.
 
 ### Starting
@@ -138,11 +140,12 @@ If you would like to contribute to this project, please first open an issue with
 - [ ] SSH (work on interpreted commands)
 - [X] Telnet
 - [X] HTTP
-- [ ] RPC (verify fingerprinting)
+- [ ] RPC
+    - Verify fingerprinting
 - [ ] NetBIOS (verify fingerprinting)
 - [ ] SNMP (work on MIB's)
 - [X] HTTPS
-- [ ] SMB
+- [ ] SMB (fingerprinting verified
 - [ ] MSSQL (verify fingerprinting)
 - [ ] MySQL (verify fingerprinting)
 - [ ] RDP (verify fingerprinting)
