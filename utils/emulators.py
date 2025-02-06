@@ -4,6 +4,7 @@ from emulators.ftp import FTPServerEmulator
 from emulators.http import WebServer
 from emulators.mssql import MSSQLEmulator
 from emulators.mysql import MySQLEmulator
+from emulators.netbios import NetBIOSEmulator
 from emulators.postgresql import PostgreSQLServer
 from emulators.rdp import RDServer
 from emulators.rpc import RPCEmulator
@@ -22,6 +23,7 @@ class ServiceEmulators:
 		self.http_server = WebServer(http_enabled=False, https_enabled=False)
 		self.mssql_server = MSSQLEmulator()
 		self.mysql_server = MySQLEmulator()
+		self.netbios_server = NetBIOSEmulator()
 		self.postgresql_server = PostgreSQLServer()
 		self.rdp_server = RDServer()
 		self.rpc_server = RPCEmulator()
@@ -64,6 +66,12 @@ class ServiceEmulators:
 			mysql_thread = threading.Thread(target=self.start_mysql_server)
 			mysql_thread.daemon = True
 			mysql_thread.start()
+
+		# NetBIOS
+		if config.get_service_by_name("netbios")["enabled"]:
+			netbios_thread = threading.Thread(target=self.start_netbios_server)
+			netbios_thread.daemon = True
+			netbios_thread.start()
 
 		# RDP
 		if config.get_service_by_name("rdp")["enabled"]:
@@ -112,6 +120,8 @@ class ServiceEmulators:
 			self.mssql_server.stop()
 		if self.mysql_server.running:
 			self.mysql_server.stop()
+		if self.netbios_server.running:
+			self.netbios_server.stop()
 		if self.postgresql_server.running:
 			self.postgresql_server.stop()
 		if self.rdp_server.running:
@@ -142,6 +152,10 @@ class ServiceEmulators:
 	# Start MySQL server
 	def start_mysql_server(self):
 		self.mysql_server.start()
+
+	# Start NetBIOS server
+	def start_netbios_server(self):
+		self.netbios_server.start()
 
 	# Start PostgreSQL server
 	def start_postgresql_server(self):

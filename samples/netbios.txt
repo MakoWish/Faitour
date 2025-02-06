@@ -1,0 +1,8 @@
+SAMPLE NETBIOS FINGERPRINTS
+These are just a few samples that have been tested and spoof the noted NetBIOS server and version. 
+
+
+Microsoft Windows netbios-ssn
+==========================================
+fingerprint: |
+    \x83\0\0\x01\x8f
