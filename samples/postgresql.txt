@@ -1,0 +1,8 @@
+SAMPLE POSTGRESQL FINGERPRINTS
+These are just a few samples that have been tested and spoof the noted PostgreSQL server and version. 
+
+
+PostgreSQL DB
+==========================================
+fingerprint: |
+    EInvalid packet length\0
