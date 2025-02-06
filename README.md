@@ -136,20 +136,32 @@ If you would like to contribute to this project, please first open an issue with
 
 ### Test and Finalize Modules
 
+- [ ] Operating System
+    - Need to dial-in the fingerprinting
 - [X] FTP
-- [ ] SSH (work on interpreted commands)
+- [ ] SSH
+    - Returns from the server wrap oddly. Can this be fixed?
 - [X] Telnet
 - [X] HTTP
 - [ ] RPC
     - Verify fingerprinting
-- [ ] NetBIOS (verify fingerprinting)
-- [ ] SNMP (work on MIB's)
+- [ ] NetBIOS
+    - Verify fingerprinting
+- [ ] SNMP
+    - Verify fingerprinting
+    - Custom MIB's?
 - [X] HTTPS
-- [ ] SMB (fingerprinting verified
-- [ ] MSSQL (verify fingerprinting)
-- [ ] MySQL (verify fingerprinting)
-- [ ] RDP (verify fingerprinting)
-- [ ] PostgreSQL (verify fingerprinting)
+- [ ] SMB
+    - Work on actual access to SMB
+    - Use file system like Telnet, FTP, and SSH?
+- [ ] MSSQL
+    - Verify fingerprinting
+- [ ] MySQL
+    - Verify fingerprinting
+- [ ] RDP
+    - Verify fingerprinting
+- [ ] PostgreSQL
+    - Verify fingerprinting
 
 ### Elastic Integration
 
