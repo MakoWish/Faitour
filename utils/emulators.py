@@ -6,6 +6,7 @@ from emulators.mssql import MSSQLEmulator
 from emulators.mysql import MySQLEmulator
 from emulators.postgresql import PostgreSQLServer
 from emulators.rdp import RDServer
+from emulators.rpc import RPCEmulator
 from emulators.smbv2 import SMBv2Server
 from emulators.snmp import SNMPServer
 from emulators.ssh import SSHServer
@@ -23,6 +24,7 @@ class ServiceEmulators:
 		self.mysql_server = MySQLEmulator()
 		self.postgresql_server = PostgreSQLServer()
 		self.rdp_server = RDServer()
+		self.rpc_server = RPCEmulator()
 		self.smb_server = SMBv2Server()
 		self.snmp_server = SNMPServer()
 		self.ssh_server = SSHServer()
@@ -69,6 +71,12 @@ class ServiceEmulators:
 			rdp_thread.daemon = True
 			rdp_thread.start()
 
+		# RPC
+		if config.get_service_by_name("rpc")["enabled"]:
+			rpc_thread = threading.Thread(target=self.start_rpc_server)
+			rpc_thread.daemon = True
+			rpc_thread.start()
+
 		# SMBv2
 		if config.get_service_by_name("smb")["enabled"]:
 			smb_thread = threading.Thread(target=self.start_smb_server)
@@ -108,6 +116,8 @@ class ServiceEmulators:
 			self.postgresql_server.stop()
 		if self.rdp_server.running:
 			self.rdp_server.stop()
+		if self.rpc_server.running:
+			self.rpc_server.stop()
 		if self.smb_server.running:
 			self.smb_server.stop()
 		if self.snmp_server.running:
@@ -140,6 +150,10 @@ class ServiceEmulators:
 	# Start RDP server
 	def start_rdp_server(self):
 		self.rdp_server.start()
+
+	# Start RPC server
+	def start_rpc_server(self):
+		self.rpc_server.start()
 
 	# Start SMB server
 	def start_smb_server(self):
