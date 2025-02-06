@@ -1,10 +1,10 @@
 # Service Fingerprinting Samples
 
-## About these Samples
+### About these Samples
 
 Within this directory, you will find some sample fingerprints that will help you to fool NMAP scans into thinking the emulated services are the versions you choose. Some services only require a fingerprint, but some also include logon banners or server banners. Be sure to adjust these to your preferences when placing them into your `./config.yml`.
 
-## Adding Fingerprints
+### Adding Fingerprints
 
 All fingerprints within this directory have been tested and confirmed to work, but you are welcome to add more. The key to a working fingerprint is generating a string that matches an NMAP fingerprinting attempt. You can find NMAP's service fingerprinting strings [HERE](https://svn.nmap.org/nmap/nmap-service-probes). The regex pattern that NMAP uses will always be within the pipes `|`. One example could be SMB for Microsoft Windows Server 2008 R2. The complete line looks like this:
 
@@ -25,5 +25,7 @@ Breaking this down, we can generate a string that matches this pattern:
 ```
 
 To test the match, you can use a text editor like Kate or Notepad++, but be sure to first escape the backslashes in the regex pattern.
+
+### Contributing
 
 If you add some strings of your own, and you can confirm they work, please let me know, and I will have them added here. 
