@@ -121,12 +121,12 @@ class SSHServer:
 			return
 
 		self.host_key = self.get_ssh_key()
-		self.thread = threading.Thread(target=self._run_server)
+		self.thread = threading.Thread(target=self.run_server)
 		self.thread.start()
 		self.running = True
 
-	def _run_server(self):
-		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"_run_server","reason":"SNMP server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
+	def run_server(self):
+		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SNMP server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
 		self.server_socket = socket(AF_INET, SOCK_STREAM)
 		self.server_socket.bind((self.host_ip, self.host_port))
 		self.server_socket.listen(100)
@@ -137,10 +137,12 @@ class SSHServer:
 				client_socket, client_address = self.server_socket.accept()
 				client_ip = client_address[0]
 				client_port = client_address[1]
-				logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"_run_server","reason":"SSH server accepted connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"run_server","reason":"SSH server accepted connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 				self.transport = Transport(client_socket)
 				self.transport.add_server_key(self.host_key)
+				# Send our custom version string from config
+				self.transport.local_version = config.get_service_by_name("ssh")["fingerprint"].strip()
 				server = SimpleSSHServer()
 				self.transport.start_server(server=server)
 				channel = self.transport.accept()
@@ -150,22 +152,22 @@ class SSHServer:
 				server.event.wait(10)
 				if not server.event.is_set():
 					
-					logger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"_run_server","reason":"SSH no shell request received, closing channel","outcome":"failure"')
+					logger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH no shell request received, closing channel","outcome":"failure"')
 					channel.close()
 					continue
 
-				self._handle_shell(channel)
+				self.handle_shell(channel)
 			except Exception as e:
 				if isinstance(e, OSError) and not self.running:
 					# Stop gracefully after closing socket
 					break
 
-	def _handle_shell(self, channel):
+	def handle_shell(self, channel):
 		try:
 			client_ip, client_port = channel.getpeername()
-			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"_handle_shell","reason":"SSH connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
-			# Send the login banner
+			# Send the login banner from config
 			ssh_banner = codecs.decode(config.get_service_by_name("ssh")["login_banner"], "unicode_escape").encode("latin1")
 			channel.send(ssh_banner)
 
@@ -181,7 +183,7 @@ class SSHServer:
 						command = buffer.strip()
 						buffer = ""
 
-						logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"_handle_shell","reason":"SSH client: {command}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+						logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH client: {command}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 						if command.lower() in ["exit", "quit"]:
 							channel.send("\r\nGoodbye!\r\n")
 							return
