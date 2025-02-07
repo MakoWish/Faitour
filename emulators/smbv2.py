@@ -1,3 +1,4 @@
+import codecs
 import socket
 import threading
 import utils.config as config
@@ -27,17 +28,18 @@ class SMBv2Server:
 		logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"SMBv2 server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.running = True
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Enable port reuse
 		self.server_socket.bind((self.host_ip, self.host_port))
 		self.server_socket.listen(5)
 		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"SMBv2 server emulator has started on {self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 		while self.running:
 			try:
-				client_socket, client_address = self.server_socket.accept()
-				client_ip = client_address[0]
-				client_port = client_address[1]
+				client_socket, address = self.server_socket.accept()
+				client_ip = address[0]
+				client_port = address[1]
 				logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"start","reason":"SMBv2 connection started","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
-				threading.Thread(target=self.handle_client, args=(client_socket,)).start()
+				threading.Thread(target=self.handle_client, args=(client_socket, address)).start()
 				logger.info(f'"type":["connection","end"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"start","reason":"SMBv2 connection ended","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			except Exception as e:
 				logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Error accepting SMBv2 connection","outcome":"failure"}},"error":{{"message":"{e}"')
@@ -56,11 +58,23 @@ class SMBv2Server:
 		except Exception as e:
 			logger.error(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"SMBv2 failed to stop server","outcome":"failure"}},"error":{{"message":"{e}"')
 
-	def handle_client(self, client_socket):
+	def handle_client(self, client_socket, address):
 		try:
-			client_socket.sendall(b"Welcome to SMBv2 Server\n")
+			# Get client IP and port from address
+			client_ip = address[0]
+			client_port = address[1]
+
 			while self.running:
-				data = client_socket.recv(1024)  # Receive raw bytes
+				# If initial data does not start with 0xFF, this is likely an NMAP service fingerprinting scan
+				data = client_socket.recv(1024)
+				if not data or data[0] != 0xff:
+					logger.warning(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_client","reason":"Initial client data appears to be SMB service fingerprinting attempt","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+
+					# Send out spoofed fingerprint
+					binary_fingerprint = codecs.decode(config.get_service_by_name("smb")["fingerprint"], "unicode_escape").encode("latin1")
+					client_socket.sendall(binary_fingerprint)
+
+				#data = client_socket.recv(1024)  # Receive raw bytes
 				if not data:
 					break
 				try:
