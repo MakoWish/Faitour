@@ -41,17 +41,13 @@ class Logger:
 
 			# Use a RotatingFileHandler for our file logger (log => log.1 => log.2 => ...)
 			fileLogger = RotatingFileHandler(log_dir + log_name, maxBytes=log_size, backupCount=log_count)
-			fileLogger.setFormatter(logging.Formatter('{"timestamp":"%(asctime)s.%(msecs)03d","log":{"level":"%(levelname)s","logger":"%(name)s","origin":{"file":{"line":%(lineno)s,"name":"%(pathname)s"}}},"event":{"provider":"%(module)s",%(message)s}}', datefmt='%Y-%m-%dT%H:%M:%S'))
-
-			# Note the file we are logging to
-			self.logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"file_logging_start","reason":"Logging to {log_dir}{log_name}","outcome":"success"')
-			
+			fileLogger.setFormatter(logging.Formatter('{"timestamp":"%(asctime)s.%(msecs)03d","log":{"level":"%(levelname)s","logger":"%(name)s","origin":{"file":{"line":%(lineno)s,"name":"%(pathname)s"}}},"event":{"provider":"%(module)s",%(message)s}}', datefmt='%Y-%m-%dT%H:%M:%S'))			
 
 			# Add both file and stdout handlers to the logger
 			self.logger.addHandler(fileLogger)
 
 			# Confirm that our file logger has been configured
-			self.logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"file_logging_start","reason":"File logging has been initiated and set to {log_level}","outcome":"success"')
+			self.logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"file_logging_start","reason":"File logging to {log_dir}{log_name} and set to {log_level}","outcome":"success"')
 
 
 	def check_log_path(self, logger, log_dir):

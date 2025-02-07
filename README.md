@@ -162,8 +162,7 @@ If you would like to contribute to this project, please first open an issue with
 
 ### Test and Finalize Modules
 
-- [ ] Operating System
-    - Need to dial-in the fingerprinting
+- [X] Operating System
 - [X] FTP
 - [ ] SSH
     - Returns from the server wrap oddly. Can this be fixed?
@@ -174,13 +173,14 @@ If you would like to contribute to this project, please first open an issue with
 - [ ] SNMP
     - Verify fingerprinting
     - Custom MIB's?
+    - Logging
 - [X] HTTPS
 - [ ] SMB
     - Work on actual access to SMB
     - Use file system like Telnet, FTP, and SSH?
 - [X] MSSQL
 - [X] MySQL
-- [ ] RDP
+- [X] RDP
     - Verify fingerprinting
 - [X] PostgreSQL
 
