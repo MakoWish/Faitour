@@ -120,33 +120,30 @@ Once Faitour has been started, be sure to run an NMAP scan from another machine 
 
 `nmap -sS -sV -O <ip address>`
 
-Depending on how you configure Faitour, your results should look something like this:
+If using the default configuration, your results should look something like this:
 
 ```bash
-me@TestVM:~$ sudo nmap -sV -T3 HoneyTest
-Starting Nmap 7.94SVN ( https://nmap.org ) at 2025-02-06 14:18 MST
-Nmap scan report for HoneyTest (10.10.10.10)
-Host is up (0.41s latency).
-rDNS record for 10.10.10.10: HoneyTest.test.lab
-Not shown: 988 closed tcp ports (reset)
-PORT     STATE SERVICE        VERSION
-21/tcp   open  ftp            Microsoft IIS ftpd 3.2
-22/tcp   open  ssh            OpenSSH for_Windows_9.5 (protocol 2.0)
-23/tcp   open  telnet         Microsoft Windows XP telnetd
-80/tcp   open  http           Microsoft IIS httpd 3.2
-135/tcp  open  msrpc          Microsoft Windows RPC
-139/tcp  open  netbios-ssn    Microsoft Windows netbios-ssn
-443/tcp  open  ssl/http       Microsoft IIS httpd 3.2
-445/tcp  open  microsoft-ds   Microsoft Windows Server 2008 R2 microsoft-ds (workgroup:)
-1433/tcp open  ms-sql-s       Microsoft SQL Server 2012 11.00.5058; SP2
-3306/tcp open  mysql          MySQL 8.3.0
-3389/tcp open  ms-wbt-server?
-5432/tcp open  postgresql     PostgreSQL DB
-MAC Address: 00:11:22:33:44:55 (Unknown)
-Service Info: OSs: Windows, Windows XP; CPE: cpe:/o:microsoft:windows, cpe:/o:microsoft:windows_xp, cpe:/o:microsoft:windows_server_2008:r2
+┌──(foobar㉿Kali)-[~]
+└─$ sudo nmap -sV -sS -T3 -O HoneyTest
+Starting Nmap 7.95 ( https://nmap.org ) at 2025-02-07 13:55 MST
+Nmap scan report for HoneyTest (192.168.200.10)
+Host is up (0.014s latency).
+rDNS record for 192.168.200.10: HoneyTest.test.lab
+Not shown: 995 closed tcp ports (reset)
+PORT    STATE SERVICE      VERSION
+80/tcp  open  http         Microsoft IIS httpd 7.5
+135/tcp open  msrpc        Microsoft Windows RPC
+139/tcp open  netbios-ssn  Microsoft Windows netbios-ssn
+443/tcp open  ssl/http     Microsoft IIS httpd 7.5
+445/tcp open  microsoft-ds Microsoft Windows Server 2008 R2 microsoft-ds (workgroup:)
+MAC Address: BC:24:11:FE:C7:3E (Proxmox Server Solutions GmbH)
+Aggressive OS guesses: Microsoft Windows 10 1507 - 1607 (97%), Microsoft Windows 10 1511 - 1607 (96%), Microsoft Windows Vista SP2 or Windows 7 or Windows Server 2008 R2 or Windows 8.1 (96%), Microsoft Windows 7 Professional (96%), Microsoft Windows 7 Ultimate (96%), Microsoft Windows Longhorn (95%), Microsoft Server 2008 R2 SP1 (95%), Microsoft Windows Server 2008 R2 SP1 or Windows 7 SP1 (95%), Microsoft Windows 7 or 8.1 R1 or Server 2008 R2 SP1 (95%), Microsoft Windows 7 or Windows Server 2008 R2 (95%)
+No exact OS matches for host (test conditions non-ideal).
+Network Distance: 1 hop
+Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows, cpe:/o:microsoft:windows_server_2008:r2
 
-Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
-Nmap done: 1 IP address (1 host up) scanned in 13.50 seconds
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 20.40 seconds
 ```
 
 ## Elastic Integration
