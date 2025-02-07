@@ -1,7 +1,8 @@
-from utils.logger import logger
-import utils.config as config
+import codecs
 import socket
 import threading
+import utils.config as config
+from utils.logger import logger
 
 class RDServer:
 	# Initialize the mock RDP server.
@@ -20,6 +21,7 @@ class RDServer:
 		try:
 			logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"RDP server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+			self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Enable port reuse
 			self.server_socket.bind((self.host_ip, self.host_port))
 			self.server_socket.listen(5)
 			self.running = True
@@ -49,28 +51,32 @@ class RDServer:
 	def accept_connections(self):
 		while self.running:
 			try:
-				client_socket, client_address = self.server_socket.accept()
-				client_ip = client_address[0]
-				client_port = client_address[1]
+				client_socket, address = self.server_socket.accept()
+				# Get client IP and port from address
+				client_ip = address[0]
+				client_port = address[1]
+				
 				logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"accept_connections","reason":"RDP connection attempt","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 				
 				# Handle the connection in a separate thread
-				threading.Thread(target=self.handle_client, args=(client_socket, client_address), daemon=True).start()
+				threading.Thread(target=self.handle_client, args=(client_socket, address), daemon=True).start()
 			except Exception as e:
 				if self.running:  # Only log if server is running
 					logger.error(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"accept_connections","reason":"RDP error accepting connections","outcome":"failure"}},"error":{{"message":"{e}"')
 
 	# Simulate interaction with a client.
-	def handle_client(self, client_socket, client_address):
+	def handle_client(self, client_socket, address):
 		try:
-			client_ip = client_address[0]
-			client_port = client_address[1]
+			# Get client IP and port from address
+			client_ip = address[0]
+			client_port = address[1]
 
-			logger.debug(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Simulating RDP handshake","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
-			rdp_response = b"\x03\x00\x00\x13\x0e\xd0\x00\x00\x12\x34\x00\x02\x1c\x01\x01\x02\x00\x08\x00\x00\x00"
-			client_socket.sendall(rdp_response)
+			# If initial data does not start with 0xFF, this is likely an NMAP service fingerprinting scan
 			data = client_socket.recv(1024)
-			logger.debug(f'"type":["connection","allowed","end"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"RDP received data","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			if not data or data[0] != 0xff:
+				logger.warning(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_client","reason":"Initial client data appears to be RDP service fingerprinting attempt","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+
+			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Simulating RDP handshake","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		except Exception as e:
 			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_client","reason":"Error handling client","outcome":"failure"}},"error":{{"message":"{e}"')
 		finally:
