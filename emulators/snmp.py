@@ -20,7 +20,7 @@ class SNMPServer:
 	# Configure SNMP server with a community string and transport.
 	def configure(self):
 		try:
-			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"configure","reason":"SNMP server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"configure","reason":"SNMP server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 			# Add SNMPv2c community to the engine
 			config.addV1System(self.snmp_engine, 'my-area', self.community)
@@ -47,6 +47,8 @@ class SNMPServer:
 			cmdrsp.SetCommandResponder(self.snmp_engine, self.snmp_context)
 			cmdrsp.NextCommandResponder(self.snmp_engine, self.snmp_context)
 			cmdrsp.BulkCommandResponder(self.snmp_engine, self.snmp_context)
+
+			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"configure","reason":"SNMP server emulator has started on {self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 		except Exception as e:
 			logger.error(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"configure","reason":"Error configuring SNMP server","outcome":"failure"}},"error":{{"message":"{e}"')
