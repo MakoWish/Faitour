@@ -35,17 +35,6 @@ def get_services():
 
 
 #===============================================================================
-# Return the list of services where 'enabled' is True.
-#===============================================================================
-def get_enabled_services():
-    enabled_services = []
-    for service in get_services():
-        if service.get('enabled', False):
-            enabled_services.append(service)
-    return enabled_services
-
-
-#===============================================================================
 # Fetch a service by its name.
 #===============================================================================
 def get_service_by_name(name):
@@ -53,16 +42,6 @@ def get_service_by_name(name):
 		if service.get('name') == name:
 			return service
 	return None
-
-
-#===============================================================================
-# Get the fingerprint to return for a given port number
-#===============================================================================
-def get_fingerprint(src_port):
-	for service in enabled_services:
-			if service["port"] == src_port:
-				fingerprint = bytes(service['fingerprint'], "utf-8").decode("unicode_escape")
-				return fingerprint
 
 
 #===============================================================================
