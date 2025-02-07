@@ -4,7 +4,7 @@ import threading
 import utils.config as config
 from handlers.inspect import inspector
 from netfilterqueue import NetfilterQueue
-from subprocess import DEVNULL, STDOUT, check_call
+from subprocess import DEVNULL, STDOUT, check_call, Popen
 from scapy.all import *
 from scapy.contrib.igmp import IGMP
 from utils.logger import logger
@@ -81,22 +81,22 @@ def handle_packet(nfq_packet):
 # Function to add rules to iptables
 #===============================================================================
 def set_rules():
-	check_call(["sysctl", "net.ipv4.conf.all.arp_ignore=1"], stdout=DEVNULL, stderr=STDOUT)
-	check_call(["sysctl", "net.ipv4.conf.all.arp_announce=2"], stdout=DEVNULL, stderr=STDOUT)
-	check_call(["sysctl", "net.ipv4.conf.all.rp_filter=2"], stdout=DEVNULL, stderr=STDOUT)
-	check_call(["echo 1 | tee /proc/sys/net/ipv4/ip_forward"], stdout=DEVNULL, stderr=STDOUT, shell=True)
-	check_call(["iptables", "-I", "INPUT", "-j", "NFQUEUE", "--queue-num", "2"], stdout=DEVNULL, stderr=STDOUT)
+	Popen(["sysctl", "net.ipv4.conf.all.arp_ignore=1"], stdout=DEVNULL, stderr=STDOUT).wait()
+	Popen(["sysctl", "net.ipv4.conf.all.arp_announce=2"], stdout=DEVNULL, stderr=STDOUT).wait()
+	Popen(["sysctl", "net.ipv4.conf.all.rp_filter=2"], stdout=DEVNULL, stderr=STDOUT).wait()
+	Popen(["echo 1 | tee /proc/sys/net/ipv4/ip_forward"], stdout=DEVNULL, stderr=STDOUT, shell=True).wait()
+	Popen(["iptables", "-I", "INPUT", "-j", "NFQUEUE", "--queue-num", "2"], stdout=DEVNULL, stderr=STDOUT).wait()
 
 
 #===============================================================================
 # Function to flush iptables and rules when shutting down
 #===============================================================================
 def flush_rules():
-	check_call(["sysctl", "net.ipv4.conf.all.arp_ignore=0"], stdout=DEVNULL, stderr=STDOUT)
-	check_call(["sysctl", "net.ipv4.conf.all.arp_announce=0"], stdout=DEVNULL, stderr=STDOUT)
-	check_call(["sysctl", "net.ipv4.conf.all.rp_filter=0"], stdout=DEVNULL, stderr=STDOUT)
-	check_call(["echo 0 | tee /proc/sys/net/ipv4/ip_forward"], stdout=DEVNULL, stderr=STDOUT, shell=True)
-	check_call(["iptables", "-D", "INPUT", "-j", "NFQUEUE", "--queue-num", "2"], stdout=DEVNULL, stderr=STDOUT)
+	Popen(["sysctl", "net.ipv4.conf.all.arp_ignore=0"], stdout=DEVNULL, stderr=STDOUT).wait()
+	Popen(["sysctl", "net.ipv4.conf.all.arp_announce=0"], stdout=DEVNULL, stderr=STDOUT).wait()
+	Popen(["sysctl", "net.ipv4.conf.all.rp_filter=0"], stdout=DEVNULL, stderr=STDOUT).wait()
+	Popen(["echo 0 | tee /proc/sys/net/ipv4/ip_forward"], stdout=DEVNULL, stderr=STDOUT, shell=True).wait()
+	Popen(["iptables", "-D", "INPUT", "-j", "NFQUEUE", "--queue-num", "2"], stdout=DEVNULL, stderr=STDOUT).wait()
 
 
 #===============================================================================
