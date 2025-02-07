@@ -40,32 +40,32 @@ syn_logging:
 operating_system:
   name: Microsoft Windows Server 2008 R2
   fingerprint: |
-      SEQ(SP=F7-101%GCD=1-6%ISR=FD-107%TI=I%CI=I%II=I%SS=O%TS=7)
+      SEQ(SP=FC-106%GCD=1-6%ISR=103-10D%TI=I|RD%CI=I%II=I%SS=S%TS=7|A)
       OPS(O1=M5B4NW8ST11%O2=M5B4NW8ST11%O3=M5B4NW8NNT11%O4=M5B4NW8ST11%O5=M5B4NW8ST11%O6=M5B4ST11)
       WIN(W1=2000%W2=2000%W3=2000%W4=2000%W5=2000%W6=2000)
-      ECN(R=Y%DF=Y%T=7B-85%TG=80%W=2000%O=M5B4NW8NNS%CC=Y%Q=)
-      T1(R=Y%DF=Y%T=7B-85%TG=80%S=O%A=S+%F=AS%RD=0%Q=)
-      T2(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=Z%A=S%F=AR%O=%RD=0%Q=)
-      T3(R=N)
-      T4(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=A%A=O%F=R%O=%RD=0%Q=)
-      T5(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)
-      T6(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=A%A=O%F=R%O=%RD=0%Q=)
-      T7(R=Y%DF=Y%T=7B-85%TG=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)
-      U1(DF=N%T=7B-85%TG=80%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=G%RUCK=G%RUD=G)
-      IE(DFI=N%T=7B-85%TG=80%CD=Z)
+      ECN(R=Y%DF=Y%T=7A-84%TG=80%W=2000%O=M5B4NW8NNS%CC=N%Q=)
+      T1(R=Y%DF=Y%T=7A-84%TG=80%S=O%A=S+%F=AS%RD=0%Q=)
+      T2(R=Y%DF=Y%T=7A-84%TG=80%W=0%S=Z%A=S%F=AR%O=%RD=0%Q=)
+      T3(R=Y%DF=Y%T=7A-84%TG=80%W=0%S=Z%A=O%F=AR%O=%RD=0%Q=)
+      T4(R=Y%DF=Y%T=7A-84%TG=80%W=0%S=A%A=O%F=R%O=%RD=0%Q=)
+      T5(R=Y%DF=Y%T=7A-84%TG=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)
+      T6(R=Y%DF=Y%T=7A-84%TG=80%W=0%S=A%A=O%F=R%O=%RD=0%Q=)
+      T7(R=Y%DF=Y%T=7A-84%TG=80%W=0%S=Z%A=S+%F=AR%O=%RD=0%Q=)
+      U1(DF=N%T=7A-84%TG=80%IPL=164%UN=0%RIPL=G%RID=G%RIPCK=Z%RUCK=0%RUD=G)
+      IE(DFI=N%T=7A-84%TG=80%CD=Z)
 
 # Services to emulate and/or spoof
 services:
   - name: ftp
-    enabled: True
+    enabled: False
     port: 21
     username: admin
     password: admin
     system_type: Windows    # Returns on "SYST" call (Windows, Unix, Linux, etc.)
     banner: |
-        IIS 3.2 FTP
+        IIS 7.5 FTP
   - name: ssh
-    enabled: True
+    enabled: False
     port: 22
     username: admin
     password: admin
@@ -75,40 +75,40 @@ services:
     fingerprint: |
         SSH-2.0-OpenSSH_for_Windows_9.5
   - name: telnet
-    enabled: True
+    enabled: False
     port: 23
     username: admin
     password: admin
     allow_anonymous: True
-    fingerprint: |
-        \xff\xfd\x25\xff\xfb\x01\xff\xfb\x03\xff\xfd\x27\xff\xfd\x1f\xff\xfd\x00\xff\xfb\x00\xff
-    banner: |
+    login_banner: |
         Microsoft telnet server ready.
+    fingerprint: |
+        \xff\xfd\x25\xff\xfb\x01\xff\xfb\x03\xff\xfd\x27\xff\xfd\x1f\xff\xfd\x00\xff\xfb\x00
   - name: http
     enabled: True
     port: 80
     username: admin   # Also applies to HTTPS
     password: admin   # Also applies to HTTPS
     default_doc: index.html   # Also applies to HTTPS
-    server_header: Microsoft-IIS/3.2
+    server_header: Microsoft-IIS/7.5
     fingerprint: |
-        HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/3.2\r\n
+        HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/7.5\r\n
   - name: rpc
-    enabled: False
+    enabled: True
     port: 135
     fingerprint: |
-        ^\x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...$
+        \x05\0\r\x03\x10\0\0\0\x18\0\0\0....\x04\0\x01\x05\0...
   - name: netbios
-    enabled: False
+    enabled: True
     port: 139
     fingerprint: |
-        ^\x80\xf0\x84\0\0\0\0\x01\0\0\0\0 CKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\0\0!\0\x01\0\0\0\0\0...*\0([\w\-]{1,15}) *\0D\0([\w\-]{1,15}) *\0\xc4\0
+        \x83\0\0\x01\x8f
   - name: snmp
     enabled: False
     port: 161
-    community: public
+    community: Public SNMP Emulator v9.9.9
     fingerprint: |
-        \x83\0\0\x01\x8f$
+        0.36\x02\x01\0\x04\x06public\xa2
   - name: https
     enabled: True
     port: 443
@@ -117,33 +117,29 @@ services:
     default_doc: # Set under HTTP
     server_header: # Set under HTTP
     fingerprint: |
-        HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/3.2\r\n
+        HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nLast-Modified: Thu, 23 Jan 2025 03:52:09 GMT\r\nAccept-Ranges: bytes\r\nETag: "4e0532d4a6ddb1:0"\r\nServer: Microsoft-IIS/7.5\r\n
   - name: smb
-    enabled: False
+    enabled: True
     port: 445
     fingerprint: |
-        \0\0..\xffSMBr\0\0\0\0\x80..\0\0\0\0\0\0\0\0\0\0\0\0\0\0@\x06\0\0\x01\0\x11\x01\0
+        \0\0\0a\xffSMBr\0\0\0\0\x88\x01@\0\0\0\0\0\0\0\0\0\0\0\0\0\0@\x06\0\0\x01\0\x11\x07\0a2\0\x01\0\x04A\0\0\0\0\x01\0\0\0\0\0\xfd\xe3\x01\0ABCDEFGHIJKLMNOPQRSTU\0\0\0\0
   - name: mssql
     enabled: False
     port: 1433
     fingerprint: |
-        \x04\x01\x00\x25\x00\x00\x01\x00Microsoft SQL Server 2019 (RTM-CU15) - 15.0.4178.1 (X64)\x00\x00
+        \x04\x01\x00\x25\x00\x00\x01\x00\x00\x00\x15\x00\x06\x01\x00\x1b\x00\x01\x02\x00\x1c\x00\x01\x03\x00\x1d\x00\x00\xff\x0b\x00\x13\xc2
   - name: mysql
     enabled: False
     port: 3306
     fingerprint: |
-        b"\x0a"
-        b"5.7.34-0ubuntu0.18.04.1\x00"
-        b"\x01\x00\x00\x00"
-        b"\x08\x00\x20\x00\x00\x00\x00\x00\x00"
-        b"\x02\x00"
+        X\0\0\0\x0a8.3.0\0ABC\0
   - name: rdp
     enabled: False
     port: 3389
     fingerprint: |
-        \x03\x00\x00\x13\x0e\xd0\x00\x00\x124\x00\x02\x1f\x08\x00\x02\x00\x00\x00
+        \x03\0\0\x0b\x06\xd0\0\0\x124\0
   - name: postgresql
     enabled: False
     port: 5432
     fingerprint: |
-        \x03\0\0*%\xe0\0\0\0\0\0
+        EInvalid packet length\0
