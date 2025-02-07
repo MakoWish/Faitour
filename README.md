@@ -1,3 +1,7 @@
+# ARCHIVED!!
+
+Due to issues with this project blocking requests to legitimate services (and OpenCanary), it wasn't working as intended. I decided to start from the ground up and have released [Faitour 2.0](https://github.com/MakoWish/Faitour2). No more updates will be made to this repository. 
+
 # Faitour
 
 **fai*tour ('fei ter)**  
