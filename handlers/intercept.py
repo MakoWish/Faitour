@@ -2,6 +2,7 @@ import base64
 import socket
 import threading
 import utils.config as config
+from handlers.inspect import inspector
 from netfilterqueue import NetfilterQueue
 from subprocess import DEVNULL, STDOUT, check_call
 from scapy.all import *
@@ -34,21 +35,26 @@ def handle_packet(nfq_packet):
 				tcp = packet[TCP]
 				ip = packet[IP]
 
-				if (tcp.flags == "S" and tcp.ack == 0):
-					if log_tcp_syn:
-						logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"intercept_packet","reason":"SYN packet received","outcome":"success"}},"source":{{"ip":"{ip.src}","port":{tcp.sport}}},"destination":{{"ip":"{ip.dst}","port":{tcp.dport}')
-				# Accept the packet
-				nfq_packet.accept()
+				# If config.yml set to log SYN packets, log them for port scan detection
+				if (tcp.flags == "S" and tcp.ack == 0 and log_tcp_syn):
+					logger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"intercept_packet","reason":"SYN packet received","outcome":"success"}},"source":{{"ip":"{ip.src}","port":{tcp.sport}}},"destination":{{"ip":"{ip.dst}","port":{tcp.dport}')
+
+				# Inspect this TCP packet to see if it's part of an OS probe
+				if not inspector.is_tcp_os_probe(nfq_packet, packet):
+					# Accept the packet since it is not an OS probe
+					nfq_packet.accept()
 
 			# Analyze and process UDP packets
 			elif packet.haslayer(UDP):
-				# More work to do here
-				nfq_packet.accept()
+				if not inspector.is_udp_os_probe(nfq_packet, packet):
+					# Accept the packet since it is not an OS probe
+					nfq_packet.accept()
 
 			# Analyze and process ICMP packets
 			elif packet.haslayer(ICMP):
-				# Not sure if I want to do more here
-				nfq_packet.accept()
+				if not inspector.is_icmp_os_probe(nfq_packet, packet):
+					# Accept the packet since it is not an OS probe
+					nfq_packet.accept()
 
 			# Currently not doing anything with IGMP packets
 			elif packet.haslayer(IGMP):
