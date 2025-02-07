@@ -5,16 +5,13 @@ description: Application configuration file for Faitour 2.0
 network:
   max_queue_size: 10240
   adapter:
-#    name: change_me
-#    ip: 10.0.0.0
-#    mac: 00:11:22:33:44:55
-    name: enp6s18
-    ip: 192.168.200.47
-    mac: bc:24:11:fe:c7:3e
+    name: change_me
+    ip: 10.0.0.0
+    mac: 00:11:22:33:44:55
 
 # Logging configuration
 logging:
-  level: DEBUG    # DEBUG, INFO, WARN, ERROR, CRITICAL
+  level: INFO    # DEBUG, INFO, WARN, ERROR, CRITICAL
   name: faitour
   stdout:
     enabled: True
