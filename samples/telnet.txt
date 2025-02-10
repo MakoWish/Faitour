@@ -22,3 +22,10 @@ fingerprint: |
     \xff\xfd\x18\xff\xfb\x01\x1b[2J\x1b[?7l\x1bProCurve 2600 Switch 2600-8-PWR\r\r\nSoftware revision 1.2.3\r\r\n
 banner: |
     Welcome!
+
+Linux telnetd
+==========================================
+fingerprint: |
+    \xff\xfd\x18\xff\xfd \xff\xfd#\xff\xfd'
+banner: |
+    Linux telnetd
