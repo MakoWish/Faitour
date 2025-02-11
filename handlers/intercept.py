@@ -117,10 +117,13 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 							logger.warn(f'"type":["info"],"kind":"metric","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"NFQUEUE size {queue_size} approaching threshold of {max_queue_size}","outcome":"unknown"')
 
 							# Unbind and re-bind the NFQUEUE
-							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"NFQUEUE re-binding due to queue size nearing threshold","outcome":"unknown"')
+							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Flush IPTables rules...","outcome":"unknown"')
 							flush_rules()
+							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Unbind NFQUEUE...","outcome":"unknown"')
 							nfqueue.unbind()
+							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Reset IPTables rules...","outcome":"unknown"')
 							set_rules()
+							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Rebind NFQUEUE...","outcome":"unknown"')
 							nfqueue.bind(2, handle_packet, max_len=queue_size)
 							logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"NFQUEUE re-bound due to queue size nearing threshold","outcome":"success"')
 					else:
