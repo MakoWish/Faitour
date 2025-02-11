@@ -32,7 +32,7 @@ sudo git clone https://github.com/MakoWish/Faitour.git
 In an attempt to make installation easier, I have provided an install script that should help to get you up and running. This install script will ensure all dependencies are installed and a `systemd` service is created. To install, simply run as root:
 
 ```bash
-sudo ./install.py
+sudo ./install.sh
 ```
 
 ### Configuration
@@ -45,7 +45,7 @@ After installing, you will need to change the configurations before starting the
 
 You **_must_** change the default settings under `network`, or Faitour will fail to start. Ensure the adapter details match what is on your host.
 
-Optionally, configure logging to fit your needs. By default, both file and stdout logging are enabled, but you may turn either or both off. If running as a `systemd` service (default), the stdout logging will be written to the systemd journal. If you will be ingesting events into Elastic, file logging is required, and I suggest keeping the default location of `/var/log/faitour`, as the integration I am working on will look to that location by default.
+Optionally, configure logging to fit your needs. By default, both file and stdout logging are enabled, but you may turn either or both off. If running as a `systemd` service (default), the stdout logging will be written to the systemd journal. If you will be ingesting events into Elastic, file logging is required, and I suggest keeping the default location of `/var/log/faitour/`, as the integration I am working on will look to that location by default.
 
 Here is a snippet from the default `config.yml` detailing the required network and logging settings:
 
