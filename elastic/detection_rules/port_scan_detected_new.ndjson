@@ -2,8 +2,13 @@
   "id": "f570a11a-1fea-464e-a534-1e5cb45e2480",
   "name": "Faitour HoneyPot Port Scan Detected (New Test)",
   "tags": [
-    "Faitour",
-    "Honeypot"
+    "Domain: Endpoint",
+    "OS: Linux",
+    "Use Case: Threat Detection",
+    "Tactic: Discovery",
+    "Tactic: Reconnaissance",
+    "Resources: Investigation Guide",
+    "Data Source: Faitour"
   ],
   "interval": "5m",
   "enabled": true,
@@ -78,12 +83,14 @@
   ],
   "to": "now",
   "references": [
+    "https://github.com/MakoWish/Faitour2"
   ],
   "version": 1,
   "rule_source": {
     "type": "internal"
   },
   "related_integrations": [
+    "Faitour"
   ],
   "required_fields": [
   ],
