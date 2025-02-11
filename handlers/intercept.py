@@ -118,7 +118,9 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 
 							# Unbind and re-bind the NFQUEUE
 							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"NFQUEUE re-binding due to queue size nearing threshold","outcome":"unknown"')
+							flush_rules()
 							nfqueue.unbind()
+							set_rules()
 							nfqueue.bind(2, handle_packet, max_len=queue_size)
 							logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"NFQUEUE re-bound due to queue size nearing threshold","outcome":"success"')
 					else:
