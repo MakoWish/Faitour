@@ -14,5 +14,5 @@ banner: IIS 3.2 FTP
 
 Apache 2.2.9 (Ubuntu)
 ==========================================
-system_type: Apache mod_ftpd v2.2.9
+system_type: Linux
 banner: 2.2.9 FTP Server (Apache/2.2.9 (Ubuntu) 24.04 LTS) ready.
