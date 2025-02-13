@@ -12,6 +12,28 @@ Faitour 2 is a complete rewrite of [MakoWish/Faitour](https://github.com/MakoWis
 
 The idea behind this project was to not only spoof services to NMAP scans, but also log all access attempts in a format that follows the [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html). This will make parsing the logs much easier for ingestion into Elasticsearch. Once I feel this project has matured a bit more, I will work on an [Elastic integration](https://www.elastic.co/integrations/data-integrations) to take all the work out of ingesting these logs, as well as creating Elastic Security alerts based on observed activity.
 
+### Functional Emulators
+
+1. FTP
+2. HTTP
+3. SSH
+4. Telnet
+
+### Fingerprint Spoofing
+
+1. FTP
+2. HTTP
+3. MSSQL
+4. MySQL
+5. NetBIOS
+6. PostgreSQL
+7. RDP
+8. RPC
+9. SMBv2
+10. SNMP
+11. SSH
+12. Telnet
+
 ## Supported Operating Systems
 
 This project was built on, and has been tested on, Ubuntu 24.04 LTS. Other operating systems **_may_** work , but I have not tested any others.
