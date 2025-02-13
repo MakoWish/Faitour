@@ -14,12 +14,16 @@ The idea behind this project was to not only spoof services to NMAP scans, but a
 
 ### Functional Emulators
 
+Each of these are fully-functional service emulators that offer interaction to a prospective attacker and may be customized to fit your needs. Configure your own web page(s) or modify files, directories, and content for FTP, SSH, and Telnet.
+
 1. FTP
 2. HTTP
 3. SSH
 4. Telnet
 
 ### Fingerprint Spoofing
+
+Enable or disable fingerprint services for any or all of the following, and customize the service fingerprint that is returned from an NMAP `-sV` scan. 
 
 1. FTP
 2. HTTP
