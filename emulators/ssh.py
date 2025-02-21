@@ -126,7 +126,7 @@ class SSHServer:
 		self.running = True
 
 	def run_server(self):
-		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SNMP server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
+		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
 		self.server_socket = socket(AF_INET, SOCK_STREAM)
 		self.server_socket.bind((self.host_ip, self.host_port))
 		self.server_socket.listen(100)
