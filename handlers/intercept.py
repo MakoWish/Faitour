@@ -117,15 +117,15 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 							logger.warn(f'"type":["info"],"kind":"metric","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"NFQUEUE size {queue_size} approaching threshold of {max_queue_size}","outcome":"unknown"')
 
 							# Unbind and re-bind the NFQUEUE
-							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Flush IPTables rules...","outcome":"unknown"')
+							logger.debug(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Flush IPTables rules...","outcome":"unknown"')
 							flush_rules()
-							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Unbind NFQUEUE...","outcome":"unknown"')
+							logger.debug(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Unbind NFQUEUE...","outcome":"unknown"')
 							nfqueue.unbind()
-							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Reset IPTables rules...","outcome":"unknown"')
+							logger.debug(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Reset IPTables rules...","outcome":"unknown"')
 							set_rules()
-							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Rebind NFQUEUE...","outcome":"unknown"')
+							logger.debug(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Rebind NFQUEUE...","outcome":"unknown"')
 							nfqueue.bind(2, handle_packet, max_len=queue_size)
-							logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"NFQUEUE re-bound due to queue size nearing threshold","outcome":"success"')
+							logger.debug(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"NFQUEUE re-bound due to queue size nearing threshold","outcome":"success"')
 					else:
 						logger.warn(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"Unexpected format in /proc/net/netfilter/nfnetlink_queue","outcome":"unknown"')
 				else:
@@ -134,10 +134,12 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue not found","outcome":"failure"}},"error":{{"message":"{e}"}}')
 
 			# Unbind and re-bind the NFQUEUE since it appears NFQUEUE is not running
-			logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"NFQUEUE re-binding due to queue size exceeding threshold","outcome":"unknown"')
+			logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"NFQUEUE re-binding due to queue monitor file not found","outcome":"unknown"')
+			flush_rules()
 			nfqueue.unbind()
+			set_rules()
 			nfqueue.bind(2, handle_packet, max_len=queue_size)
-			logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"NFQUEUE re-bound due to queue size exceeding threshold","outcome":"success"')
+			logger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"NFQUEUE re-bound due to queue monitor file not found","outcome":"success"')
 		except Exception as e:
 			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"Error monitoring NFQUEUE queue size","outcome":"failure"}},"error":{{"message":"{e}"}}')
 
