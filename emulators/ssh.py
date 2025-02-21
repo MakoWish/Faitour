@@ -1,5 +1,6 @@
 import os
 import codecs
+import socket
 import threading
 import traceback
 import utils.config as config
@@ -7,7 +8,7 @@ from utils.logger import logger
 from paramiko import ServerInterface, Transport, AUTH_SUCCESSFUL, OPEN_SUCCEEDED, SFTPServer
 from paramiko.sftp_server import SFTPServerInterface, SFTPAttributes
 from paramiko import RSAKey
-from socket import socket, AF_INET, SOCK_STREAM
+#from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
 from datetime import datetime, timedelta
 from cryptography import x509
 from cryptography.x509.oid import NameOID
@@ -20,14 +21,17 @@ class SimpleSSHServer(ServerInterface):
 	PASSWORD = config.get_service_by_name("ssh")["password"]
 	ROOT_DIR = os.path.abspath("./emulators/ssh_root")
 
-	def __init__(self):
+	def __init__(self, client_ip=None, client_port=None):
 		self.event = threading.Event()
+		self.client_ip = client_ip
+		self.client_port = client_port
 
 	def check_auth_password(self, username, password):
+		# Validate the username and password
 		if username == self.USERNAME and password == self.PASSWORD:
-			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication successful","outcome":"success"}},"user":{{"name":"{username}","password":"{password}"')
+			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication successful","outcome":"success"}},"user":{{"name":"{username}","password":"{password}"}},"source":{{"ip":"{self.client_ip}","port":{self.client_port}')
 			return AUTH_SUCCESSFUL
-		logger.warning(f'"type":["connection","denied"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication failed","outcome":"failure"}},"user":{{"name":"{username}","password":"{password}"')
+		logger.warning(f'"type":["connection","denied"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication failed","outcome":"failure"}},"user":{{"name":"{username}","password":"{password}"}},"source":{{"ip":"{self.client_ip}","port":{self.client_port}')
 		return None
 
 	def check_channel_request(self, kind, chanid):
@@ -127,7 +131,8 @@ class SSHServer:
 
 	def run_server(self):
 		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
-		self.server_socket = socket(AF_INET, SOCK_STREAM)
+		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow reuse of port
 		self.server_socket.bind((self.host_ip, self.host_port))
 		self.server_socket.listen(100)
 		self.server_socket.settimeout(1)  # Set a timeout to avoid blocking indefinitely
@@ -143,7 +148,7 @@ class SSHServer:
 				self.transport.add_server_key(self.host_key)
 				# Send our custom version string from config
 				self.transport.local_version = config.get_service_by_name("ssh")["fingerprint"].strip()
-				server = SimpleSSHServer()
+				server = SimpleSSHServer(client_ip, client_port)
 				self.transport.start_server(server=server)
 				channel = self.transport.accept()
 				if channel is None:
@@ -151,7 +156,7 @@ class SSHServer:
 
 				server.event.wait(10)
 				if not server.event.is_set():
-					
+
 					logger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH no shell request received, closing channel","outcome":"failure"')
 					channel.close()
 					continue
@@ -254,5 +259,5 @@ class SSHServer:
 			# Read the existing key from the file
 			logger.debug(f'"type":["info","creation"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"get_ssh_key","reason":"RSA key {key_path} already exists","outcome":"success"')
 			key = RSAKey(filename=key_path)
-		
+
 		return key
