@@ -1,7 +1,7 @@
 # Faitour 2.0
 
-**fai*tour ('fei ter)**  
-n. Archaic  
+**fai*tour ('fei ter)**
+n. Archaic
 [1300-1350] Middle English - A charlatan or imposter
 
 ![Faitour 2](logo_wide.png)
@@ -171,6 +171,18 @@ Service Info: OS: Windows; CPE: cpe:/o:microsoft:windows, cpe:/o:microsoft:windo
 OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 20.40 seconds
 ```
+
+## Updating
+
+A script `update.py` has been included to check for any updates to this repository. Any time Faitour is started, an update check is performed, and if an update is available, a log entry is made:
+
+```
+{"timestamp":"2025-03-25T18:14:19.662","log":{"level":"INFO","logger":"faitour","origin":{"file":{"line":28,"name":"/opt/Faitour2/faitour.py"}}},"event":{"provider":"faitour","type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"reason","reason":"An update is available. Please run 'update.py' to apply these updates.","outcome":"unknown"}}
+```
+
+If you run `update.py` manually, you will be prompted to choose if you would like to update.
+
+**_NOTE: Updating will not overwrite your `config.yml`, nor custom content in the emulator root directories such as `emulators/ftp_root`.
 
 ## Elastic Integration
 
