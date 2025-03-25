@@ -6,6 +6,7 @@ import utils.config as config
 import handlers.intercept as intercept
 from utils.emulators import ServiceEmulators
 from utils.logger import logger
+from checkforupdates import check_for_updates
 
 
 #===============================================================================
@@ -21,6 +22,9 @@ def main():
 	if not config.is_valid():
 		logger.critical('"type":["error"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"check_config","reason":"Default configuration found","outcome":"failure"')
 		return False
+
+	# Check if there are any updates available
+	check_for_updates(check_only=True)
 
 	# Note that the application is starting
 	logger.info('"type":["start","info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"reason","reason":"Faitour is starting","outcome":"unknown"')
