@@ -4,9 +4,9 @@ import os
 import time
 import utils.config as config
 import handlers.intercept as intercept
+from update import check as update_available
 from utils.emulators import ServiceEmulators
 from utils.logger import logger
-from checkforupdates import check_for_updates
 
 
 #===============================================================================
@@ -24,7 +24,8 @@ def main():
 		return False
 
 	# Check if there are any updates available
-	check_for_updates(check_only=True)
+	if update_available(silent=True):
+		logger.info('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"reason","reason":"An update is available. Please run \'update.py\' to apply these updates.","outcome":"unknown"')
 
 	# Note that the application is starting
 	logger.info('"type":["start","info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"reason","reason":"Faitour is starting","outcome":"unknown"')

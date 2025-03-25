@@ -1,10 +1,11 @@
+#!/usr/bin/python3
+
 import os
 import requests
 import shutil
 import logging
 from pathlib import Path
 from zipfile import ZipFile
-from utils.logger import logger
 
 
 GITHUB_REPO = "https://github.com/MakoWish/Faitour2"
@@ -21,7 +22,6 @@ def get_local_version():
 		with open(VERSION_FILE, "r") as f:
 			return f.read().strip()
 	except FileNotFoundError:
-		logger.error('"type":["start","error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Local version file not found","outcome":"failure"')
 		return None
 
 
@@ -32,7 +32,6 @@ def get_remote_version():
 		response.raise_for_status()
 		return response.text.strip()
 	except requests.RequestException as e:
-		logger.error(f'"type":["start","error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Error fetching remote version: {e}","outcome":"failure"')
 		return None
 
 
@@ -63,13 +62,18 @@ def download_and_extract():
 		shutil.rmtree(extracted_folder)
 		os.remove(zip_path)
 
-		logger.info('"type":["start","info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"reason","reason":"Update applied successfully.","outcome":"success"')
+		print("Update applied successfully.")
 	except Exception as e:
-		logger.error(f'"type":["start","error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Update failed: {e}","outcome":"failure"')
+		print(f"Update failed: {e}")
 
 
 # Main function
-def main(check_only=False):
+def check(silent=False):
+	# Ensure we are running as root/sudo
+	if os.geteuid() != 0:
+		print("This update script must be run as root/sudo!")
+		os._exit(5)
+
 	local_version = get_local_version()
 	remote_version = get_remote_version()
 
@@ -77,17 +81,22 @@ def main(check_only=False):
 		return
 
 	if local_version < remote_version:
-		logger.info(f'"type":["start","info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"reason","reason":"A newer version ({remote_version}) is available. Please","outcome":"success"')
-		user_input = input(f"A newer version ({remote_version}) is available. Update now? (y/n): ").strip().lower()
-		if user_input == "y":
-			download_and_extract()
-			print("Update completed. Please restart the application.")
+		if silent:
+			return True
 		else:
-			print("Update skipped.")
+			user_input = input(f"A newer version ({remote_version}) is available. Update now? (y/n): ").strip().lower()
+			if user_input == "y":
+				download_and_extract()
+				print("Update completed. Please restart the application.")
+			else:
+				print("Update skipped.")
 	else:
-		print("You are already on the latest version.")
+		if silent:
+			return False
+		else:
+			print("You are already on the latest version.")
 
 
 # Module entry point
 if __name__ == "__main__":
-	main()
+	check()

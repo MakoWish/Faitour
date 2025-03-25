@@ -1,0 +1,8 @@
+Version 2.1.0
+Added update mechanism to check for latest version.
+
+Version 2.0.0
+Previous changes in v2 were not tracked.
+
+Version 1.0.0
+The original Faitour has been retired due to lack of package support for Ubuntu 24.04.
