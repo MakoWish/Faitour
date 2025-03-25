@@ -1,9 +1,9 @@
 #!/usr/bin/python3
 
 import os
-import requests
+import stat
 import shutil
-import logging
+import requests
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -35,6 +35,30 @@ def get_remote_version():
 		return None
 
 
+# Get a list of executable files to mark new as executable
+def get_executable_files():
+	exec_files = set()
+	for item in Path.cwd().rglob("*"):
+		if item.is_file() and os.access(item, os.X_OK):
+			exec_files.add(str(item.relative_to(Path.cwd())))
+	return exec_files
+
+
+# Restore executable flag to files previously executable
+def restore_executable_permissions(exec_files):
+	for file in exec_files:
+		file_path = Path.cwd() / file
+		if file_path.exists():
+			file_path.chmod(file_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+
+# Ensure permissions are retained during file moves
+def copy_with_permissions(src, dest):
+    shutil.move(src, dest)
+    st = os.stat(dest)
+    os.chmod(dest, st.st_mode)
+
+
 # Download and extract from GitHub
 def download_and_extract():
 	try:
@@ -44,25 +68,28 @@ def download_and_extract():
 			for chunk in response.iter_content(1024):
 				f.write(chunk)
 
+		exec_files = get_executable_files()
+
 		with ZipFile(zip_path, "r") as zip_ref:
 			extracted_folder = "Faitour2-main"
 			zip_ref.extractall()
 
 			for item in Path(extracted_folder).rglob("*"):
 				relative_path = item.relative_to(extracted_folder)
-				if relative_path.name in EXCLUDE_FILES or any(folder in relative_path.parts for folder in EXCLUDE_FOLDERS):
+				if relative_path.name in EXCLUDE_FILES or any(str(relative_path).startswith(folder) for folder in EXCLUDE_FOLDERS):
 					continue
 
 				dest = Path.cwd() / relative_path
 				if item.is_dir():
 					dest.mkdir(parents=True, exist_ok=True)
 				else:
-					shutil.move(str(item), str(dest))
+					copy_with_permissions(str(item), str(dest))
 
 		shutil.rmtree(extracted_folder)
 		os.remove(zip_path)
-
+		restore_executable_permissions(exec_files)
 		print("Update applied successfully.")
+
 	except Exception as e:
 		print(f"Update failed: {e}")
 
@@ -78,7 +105,7 @@ def check(silent=False):
 	remote_version = get_remote_version()
 
 	if not local_version or not remote_version:
-		return
+		return False
 
 	if local_version < remote_version:
 		if silent:
