@@ -117,7 +117,8 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 						if queue_size > (max_queue_size - 100):
 							logger.warn(f'"type":["info"],"kind":"metric","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"NFQUEUE size {queue_size} approaching threshold of {max_queue_size}","outcome":"unknown"')
 
-							# Restart the service
+							# This is a fail-safe, as it seems some virtualized network hardware is less capable than others
+							# and the queue can fill up. Once full, all network connectivity is lost, so let's restart
 							logger.warn(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
 							subprocess.run(["systemctl", "restart", "faitour.service"], check=False)
 							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restarted Faitour service","outcome":"success"')
@@ -126,13 +127,14 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 				else:
 					logger.warn(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue is empty or unreadable","outcome":"unknown"')
 
-					logger.warn(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
+					# Issue with queue. Restart the service
+					logger.error(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
 					subprocess.run(["systemctl", "restart", "faitour.service"], check=False)
 					logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restarted Faitour service","outcome":"success"')
 		except FileNotFoundError as e:
 			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue not found","outcome":"failure"}},"error":{{"message":"{e}"}}')
 
-			# Unbind and re-bind the NFQUEUE since it appears NFQUEUE is not running
+			# Restart the service since it appears NFQUEUE may not be running
 			logger.warn(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
 			subprocess.run(["systemctl", "restart", "faitour.service"], check=False)
 			logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restarted Faitour service","outcome":"success"')
