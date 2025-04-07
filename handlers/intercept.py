@@ -85,7 +85,7 @@ def set_rules():
 	Popen(["sysctl", "net.ipv4.conf.all.arp_announce=2"], stdout=DEVNULL, stderr=STDOUT).wait()
 	Popen(["sysctl", "net.ipv4.conf.all.rp_filter=2"], stdout=DEVNULL, stderr=STDOUT).wait()
 	Popen(["echo 1 | tee /proc/sys/net/ipv4/ip_forward"], stdout=DEVNULL, stderr=STDOUT, shell=True).wait()
-	Popen(["iptables", "-I", "INPUT", "-j", "NFQUEUE", "--queue-num", "2"], stdout=DEVNULL, stderr=STDOUT).wait()
+	Popen(["iptables", "-I", "INPUT", "-p", "tcp", "!", "-d", "127.0.0.1", "-j", "NFQUEUE", "--queue-num", "2"], stdout=DEVNULL, stderr=STDOUT).wait()
 
 
 #===============================================================================
