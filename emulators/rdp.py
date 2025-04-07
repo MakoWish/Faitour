@@ -74,7 +74,7 @@ class RDServer:
 			# If initial data does not start with 0xFF, this is likely an NMAP service fingerprinting scan
 			data = client_socket.recv(1024)
 			if not data or data[0] != 0xff:
-				logger.warning(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_client","reason":"Initial client data appears to be RDP service fingerprinting attempt","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				logger.warning(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Initial client data appears to be RDP service fingerprinting attempt","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Simulating RDP handshake","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		except Exception as e:

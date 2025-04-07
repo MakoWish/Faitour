@@ -37,7 +37,7 @@ class MSSQLEmulator:
 			# If initial data does not start with 0xFF, this is likely an NMAP service fingerprinting scan
 			data = client_socket.recv(1024)
 			if not data or data[0] != 0xff:
-				logger.warning(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"honeypot","action":"handle_client","reason":"Initial client data appears to be MSSQL service fingerprinting attempt","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				logger.warning(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Initial client data appears to be MSSQL service fingerprinting attempt","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 				# Send out spoofed fingerprint
 				binary_fingerprint = codecs.decode(config.get_service_by_name("mssql")["fingerprint"], "unicode_escape").encode("latin1")
