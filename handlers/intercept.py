@@ -96,7 +96,7 @@ def flush_rules():
 	Popen(["sysctl", "net.ipv4.conf.all.arp_announce=0"], stdout=DEVNULL, stderr=STDOUT).wait()
 	Popen(["sysctl", "net.ipv4.conf.all.rp_filter=0"], stdout=DEVNULL, stderr=STDOUT).wait()
 	Popen(["echo 0 | tee /proc/sys/net/ipv4/ip_forward"], stdout=DEVNULL, stderr=STDOUT, shell=True).wait()
-	Popen(["iptables", "-D", "INPUT", "-j", "NFQUEUE", "--queue-num", "2"], stdout=DEVNULL, stderr=STDOUT).wait()
+	Popen(["iptables", "-D", "INPUT", "-p", "tcp", "!", "-d", "127.0.0.1", "-j", "NFQUEUE", "--queue-num", "2"], stdout=DEVNULL, stderr=STDOUT).wait()
 	Popen(["iptables", "-F"], stdout=DEVNULL, stderr=STDOUT).wait()
 
 
@@ -117,8 +117,8 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 						if queue_size > (max_queue_size - 100):
 							logger.warn(f'"type":["info"],"kind":"metric","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"NFQUEUE size {queue_size} approaching threshold of {max_queue_size}","outcome":"unknown"')
 
-							# This is a fail-safe, as it seems some virtualized network hardware is less capable than others
-							# and the queue can fill up. Once full, all network connectivity is lost, so let's restart
+							# I am keeping this service restart as a fail-safe to ensure no conflicts with Elastic Agent, but
+							# I believe the recent change to the IP Tables rule renders this entire queue monitoring method obsolete.
 							logger.warn(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
 							subprocess.run(["systemctl", "restart", "faitour.service"], check=False)
 							logger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restarted Faitour service","outcome":"success"')
