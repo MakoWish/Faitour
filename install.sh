@@ -72,8 +72,7 @@ create_systemd_service() {
     cat <<EOF > "$service_path"
 [Unit]
 Description=Faitour Services Emulator
-Wants=elastic-agent.service ElasticEndpoint.service
-After=network.target elastic-agent.service ElasticEndpoint.service
+After=network.target
 
 [Service]
 ExecStart=/usr/bin/python3 $working_dir/faitour.py
