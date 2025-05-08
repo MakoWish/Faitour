@@ -58,11 +58,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 			parsed_path.fragment
 		))
 
-		# Escape double-quotes in the URI
-		full_url = full_url.replace('\\', '\\\\')
-		full_url = full_url.replace('"', '\\"')
-
-		return full_url
+		return json.dumps(full_url)
 
 	def is_authenticated(self):
 		# Check for an (intentionally-insecure) authentication cookie
@@ -74,7 +70,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		return False
 
 	def send_error_page(self, response_code: int):
-		logger.info(f'"type":["connection","denied"],"kind":"alert","category":["web","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"http_get","reason":"HTTP GET Request","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"GET"}},"response":{{"status_code":{response_code}}}}},"url":{{"full":"{self.get_full_url()}","path":{json.dumps(self.path)}')
+		logger.info(f'"type":["connection","denied"],"kind":"alert","category":["web","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"http_get","reason":"HTTP GET Request","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"GET"}},"response":{{"status_code":{response_code}}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(self.path)}')
 		self.send_response(response_code)
 		self.send_header("Content-type", "text/html")
 		#self.set_common_headers()
@@ -96,7 +92,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 				self.wfile.write(b"404 Not Found")
 
 	def serve_page(self, method, status_code, path):
-		logger.info(f'"type":["connection","allowed","info"],"kind":"alert","category":["web","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"http_get","reason":"HTTP {method} Request","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"{method}"}},"response":{{"status_code":{status_code}}}}},"url":{{"full":"{self.get_full_url()}","path":{json.dumps(path)}')
+		logger.info(f'"type":["connection","allowed","info"],"kind":"alert","category":["web","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"http_get","reason":"HTTP {method} Request","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"{method}"}},"response":{{"status_code":{status_code}}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(path)}')
 		self.send_response(status_code)
 		self.send_header("Content-type", "text/html")
 		if path == "/logout.html":
@@ -180,7 +176,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 
 		# Validate the credentials (you can add your own logic here)
 		if username == config.get_service_by_name("http")["username"] and password == config.get_service_by_name("http")["password"]:
-			logger.info(f'"type":["allowed"],"kind":"alert","category":["web","network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"login","reason":"User login success","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":200}}}},"url":{{"full":"{self.get_full_url()}","path":{json.dumps(self.path)}}},"user":{{"name":"{username}","password":"{password}"')
+			logger.info(f'"type":["allowed"],"kind":"alert","category":["web","network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"login","reason":"User login success","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":200}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(self.path)}}},"user":{{"name":"{username}","password":"{password}"')
 			cookie = SimpleCookie()
 			cookie["session"] = "authenticated"  # This is intentionally insecure
 			cookie["session"]["httponly"] = True
@@ -194,7 +190,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 			with open(f"{self.http_root}/index.html", "r") as file:
 				self.wfile.write(file.read().encode("utf-8"))
 		else:
-			logger.error(f'"type":["denied"],"kind":"alert","category":["web","network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"login_fail","reason":"User login failed","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":401}}}},"url":{{"full":"{self.get_full_url()}","path":{json.dumps(self.path)}}},"user":{{"name":"{username}","password":"{password}"')
+			logger.error(f'"type":["denied"],"kind":"alert","category":["web","network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"login_fail","reason":"User login failed","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":401}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(self.path)}}},"user":{{"name":"{username}","password":"{password}"')
 			self.send_error_page(401)
 
 class WebServer:
