@@ -1,3 +1,7 @@
+Version 2.2.0
+Enhancement
+Minor improvements to update.py script.
+
 Version 2.1.6
 Bug Fix
 Escape full SSH commands to correct JSON parsing errors.
