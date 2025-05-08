@@ -1,3 +1,7 @@
+Version 2.1.6
+Bug Fix
+Escape full SSH commands to correct JSON parsing errors.
+
 Version 2.1.5
 Bug Fix
 Escape full URL values to correct JSON parsing errors in HTTP/S emulator.

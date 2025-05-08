@@ -1,4 +1,5 @@
 import os
+import json
 import codecs
 import socket
 import threading
@@ -188,7 +189,7 @@ class SSHServer:
 						command = buffer.strip()
 						buffer = ""
 
-						logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH client: {command}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+						logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH client: {json.dumps(command)[1:-1]}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 						if command.lower() in ["exit", "quit"]:
 							channel.send("\r\nGoodbye!\r\n")
 							return
