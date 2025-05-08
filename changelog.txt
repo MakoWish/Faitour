@@ -1,3 +1,7 @@
+Version 2.1.5
+Bug Fix
+Escape full URL values to correct JSON parsing errors in HTTP/S emulator.
+
 Version 2.1.4
 Bug Fix
 Remove systemd dependency on Elastic Agent starting since v2.1.2 fixed that issue.
