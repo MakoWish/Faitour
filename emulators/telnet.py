@@ -83,9 +83,9 @@ class TelnetServer:
 		# Check if credentials are valid based on config
 		if username == config.get_service_by_name("telnet")["username"] and password == config.get_service_by_name("telnet")["password"]:
 			print(f"{username} user has logged in")
-			logger.info(f'"type":["user","connection","allowed","start"],"kind":"alert","category":["authentication","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User logged in","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"')
+			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["authentication","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User logged in","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"')
 		elif username == "anonymous" and config.get_service_by_name("telnet")["allow_anonymous"]:
-			logger.info(f'"type":["user","connection","allowed","start"],"kind":"alert","category":["authentication","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User logged in","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"')
+			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["authentication","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User logged in","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"')
 		else:
 			client_socket.send(b"Invalid login!\n")
 			client_socket.close
@@ -122,19 +122,19 @@ class TelnetServer:
 					# Ensure the directory is within the root_dir
 					if os.path.commonpath([self.root_dir, new_dir]) == self.root_dir and os.path.exists(new_dir) and os.path.isdir(new_dir):
 						current_dir = new_dir
-						logger.info(f'"type":["user","access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User access to {new_dir} granted","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"directory":"{new_dir}"')
+						logger.info(f'"type":["access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User access to {new_dir} granted","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"directory":"{new_dir}"')
 					else:
 						client_socket.send(b"Directory not found or access denied.\n")
-						logger.error(f'"type":["user","access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User access to {new_dir} denied","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"directory":"{new_dir}"')
+						logger.error(f'"type":["access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User access to {new_dir} denied","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"directory":"{new_dir}"')
 				elif data == "ls":
 					try:
 						files = os.listdir(current_dir)
 						response = "\n".join(files) + "\n"
 						client_socket.send(response.encode())
-						logger.info(f'"type":["user","access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User listed directory {current_dir}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"directory":"{current_dir}"')
+						logger.info(f'"type":["access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User listed directory {current_dir}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"directory":"{current_dir}"')
 					except Exception as e:
 						client_socket.send(f"Error listing directory: {e}\n".encode())
-						logger.error(f'"type":["user","access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User attempt to list directory {current_dir} failed","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"error":{{"message":"{e}"}},"file":{{"directory":"{current_dir}"')
+						logger.error(f'"type":["access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User attempt to list directory {current_dir} failed","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"error":{{"message":"{e}"}},"file":{{"directory":"{current_dir}"')
 				elif data.startswith("cat "):
 					filename = data[4:].strip()
 					filepath = os.path.abspath(os.path.join(current_dir, filename))
@@ -143,18 +143,18 @@ class TelnetServer:
 						with open(filepath, 'r') as f:
 							client_socket.send(f.read().encode())
 							client_socket.send(b'\r\n')
-							logger.info(f'"type":["user","access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User cat\'ed contents of file {filepath}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"name":"{filename}","directory":"{filepath}"')
+							logger.info(f'"type":["access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User cat\'ed contents of file {filepath}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"name":"{filename}","directory":"{filepath}"')
 					else:
 						client_socket.send(b"File not found or access denied.\n")
-						logger.error(f'"type":["user","access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User attempt to cat file {filepath} failed","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"error":{{"message":"File not found or access denied"')
+						logger.error(f'"type":["access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User attempt to cat file {filepath} failed","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"error":{{"message":"File not found or access denied"')
 				else:
 					try:
 						result = subprocess.check_output(data, shell=True, cwd=current_dir, stderr=subprocess.STDOUT)
 						client_socket.send(result)
-						logger.info(f'"type":["user","access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User ran unhandled command {data}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"')
+						logger.info(f'"type":["access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User ran unhandled command {data}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"')
 					except subprocess.CalledProcessError as e:
 						client_socket.send(e.output or b"Command failed.\n")
-						logger.error(f'"type":["user","access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User command {data} failed","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"error":{{"message":"{e}"')
+						logger.error(f'"type":["access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User command {data} failed","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"error":{{"message":"{e}"')
 		except Exception as e:
 			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_client","reason":"Client error","outcome":"failure"}},"error":{{"message":"{e}"')
 		finally:

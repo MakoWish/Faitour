@@ -1,3 +1,7 @@
+Version 2.2.1
+Bug Fix
+Fix incorrect use of value 'user' for 'event.type' in ECS
+
 Version 2.2.0
 Enhancement
 Minor improvements to update.py script.
