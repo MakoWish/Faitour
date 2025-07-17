@@ -1,3 +1,7 @@
+Version 2.2.2
+Bug Fix
+Fix issue with SSH stops accepting connections.
+
 Version 2.2.1
 Bug Fix
 Fix incorrect use of value 'user' for 'event.type' in ECS

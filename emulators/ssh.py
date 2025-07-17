@@ -153,16 +153,23 @@ class SSHServer:
 				self.transport.start_server(server=server)
 				channel = self.transport.accept()
 				if channel is None:
+					# No channel. Clean up this Transport and try again
+					self.transport.close()
 					continue
 
 				server.event.wait(10)
 				if not server.event.is_set():
-
 					logger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH no shell request received, closing channel","outcome":"failure"')
 					channel.close()
+					self.transport.close()
 					continue
 
-				self.handle_shell(channel)
+				# We got a shell, hand it off
+				try:
+					self.handle_shell(channel)
+				finally:
+					channel.close()
+					self.transport.close()
 			except Exception as e:
 				if isinstance(e, OSError) and not self.running:
 					# Stop gracefully after closing socket
