@@ -33,7 +33,8 @@ class TelnetServer:
 				client_socket, address = self.server_socket.accept()
 				client_ip = address[0]
 				client_port = address[1]
-				logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"start","reason":"New connection from","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+
+				logger.info(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"start","reason":"Telnet connection initiated","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 				client_thread = threading.Thread(target=self.handle_client, args=(client_socket, address))
 				client_thread.start()
 				self.clients.append((client_socket, client_thread))
@@ -76,6 +77,8 @@ class TelnetServer:
 		if not username:
 			# Connection was lost or reset. Exit
 			return None
+
+		logger.info(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"start","reason":"User name received","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}"')
 
 		# Prompt for password
 		password = self.get_password(client_socket)
