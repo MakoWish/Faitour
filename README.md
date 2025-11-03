@@ -50,7 +50,7 @@ The ultimate location is up to you, but I typically install optional software to
 
 ```bash
 cd /opt
-sudo git clone https://github.com/MakoWish/Faitour.git
+sudo git clone https://github.com/MakoWish/Faitour2.git
 ```
 
 ### Setup
