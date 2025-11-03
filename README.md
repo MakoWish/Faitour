@@ -1,7 +1,7 @@
 # Faitour 2.0
 
-**fai*tour ('fei ter)**  
-n. Archaic  
+**fai*tour ('fei ter)**
+n. Archaic
 [1300-1350] Middle English - A charlatan or imposter
 
 ![Faitour 2](logo_wide.png)
