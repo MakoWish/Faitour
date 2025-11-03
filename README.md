@@ -113,7 +113,7 @@ Note that the majority of these fingerprints contain regex patterns. You should 
 
 **_IMPORTANT_**: 
 
-1. If you are going to enable the SSH service, you will need to first change the port your actual SSH service is running on. Choose an obscure port number that will not show up on the typical NMAP scan. Ideally, disable SSH and rely on console access only.
+1. If you are going to enable the SSH emulator, you will need to first change the port your actual SSH service is running on. Choose an obscure port number that will not show up on the typical NMAP scan. Ideally, disable SSH and rely on console access only.
 2. If setting up a custom web page, ensure the web form attributes remain the same.
 3. If using HTTPS, be sure to update the `tls` settings in `config.yml` to generate a more believable certificate name than the default "foo.example.org". Optionally, you may use your own custom certificate. The key must be placed in `./emulators/http_key.pem`, and the cert/chain must be placed in `./emulator/http_cert.pem`.
     1. If you change the `tls` settings in `config.yml`, be sure to delete any `*.pem` files in `./emulators` so new ones will be generated with your new settings.
