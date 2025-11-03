@@ -8,7 +8,7 @@ n. Archaic
 
 ## About
 
-Faitour 2 is a complete rewrite of [MakoWish/Faitour](https://github.com/MakoWish/Faitour) which was originally forked from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project for the inspiration. The issue with the original Faitour was that packets to any real services would be intercepted and not properly forwarded, so the services were effectively rendered useless outside of spoofing NMAP scans. This defeated the purpose of working alongside OpenCanary as it blocked all access to OpenCanary's enabled services. For this reason, I decided to start from scratch and try to create my own honeypot with some fully-functional services and detailed logging. 
+Faitour 2.0 is a complete rewrite of the original [MakoWish/Faitour-Legacy](https://github.com/MakoWish/Faitour-Legacy) which was originally forked from [eightus/Cyder](https://github.com/eightus/Cyder), so I must first give credit to that project for the inspiration. The issue with the original Faitour was that packets to any real services would be intercepted and not properly forwarded, so the services were effectively rendered useless outside of spoofing NMAP scans. This defeated the purpose of working alongside OpenCanary as it blocked all access to OpenCanary's enabled services. For this reason, I decided to start from scratch and try to create my own honeypot with some fully-functional services and detailed logging. 
 
 The idea behind this project was to not only spoof services to NMAP scans, but also log all access attempts in a format that follows the [Elastic Common Schema](https://www.elastic.co/guide/en/ecs/current/ecs-field-reference.html). This will make parsing the logs much easier for ingestion into Elasticsearch. I have already submit a PR for an official [Elastic integration](https://www.elastic.co/integrations/data-integrations) to take all the work out of ingesting these logs, so please head over to [elastic/integrations/pull/13304](https://github.com/elastic/integrations/pull/13304) and vote up my PR!
 
@@ -50,7 +50,7 @@ The ultimate location is up to you, but I typically install optional software to
 
 ```bash
 cd /opt
-sudo git clone https://github.com/MakoWish/Faitour2.git
+sudo git clone https://github.com/MakoWish/Faitour.git
 ```
 
 ### Setup
@@ -105,7 +105,7 @@ NMAP's operating system fingerprints database can be found at: https://svn.nmap.
 
 #### Service Emulators
 
-Several services may be emulated, and some offer real interaction like FTP, Telnet, SSH, and HTTP(S). These services allow you to customize the port they run on, usernames:passwords that grant access to those services, and more. Many of these services provide file system access that you may customize to your liking. This may be a custom web page or pages in `./emulators/web_root`, or files in `./emulators/ftp_root` or `./emulators/telnet_root`. You may adjust the fingerprints to reflect the system type you are trying to emulate. I have provided some examples in `./samples/<service>.txt`. Please see [./samples/README.md](https://github.com/MakoWish/Faitour2/tree/main/samples/README.md) for more details. 
+Several services may be emulated, and some offer real interaction like FTP, Telnet, SSH, and HTTP(S). These services allow you to customize the port they run on, usernames:passwords that grant access to those services, and more. Many of these services provide file system access that you may customize to your liking. This may be a custom web page or pages in `./emulators/web_root`, or files in `./emulators/ftp_root` or `./emulators/telnet_root`. You may adjust the fingerprints to reflect the system type you are trying to emulate. I have provided some examples in `./samples/<service>.txt`. Please see [./samples/README.md](https://github.com/MakoWish/Faitour/tree/main/samples/README.md) for more details. 
 
 Service Fingerprints can be found at: https://svn.nmap.org/nmap/nmap-service-probes
 
@@ -177,7 +177,7 @@ Nmap done: 1 IP address (1 host up) scanned in 20.40 seconds
 A script `update.py` has been included to check for any updates to this repository. Any time Faitour is started, an update check is performed, and if an update is available, a log entry is made:
 
 ```
-{"timestamp":"2025-03-25T18:14:19.662","log":{"level":"INFO","logger":"faitour","origin":{"file":{"line":28,"name":"/opt/Faitour2/faitour.py"}}},"event":{"provider":"faitour","type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"reason","reason":"An update is available. Please run 'update.py' to apply these updates.","outcome":"unknown"}}
+{"timestamp":"2025-03-25T18:14:19.662","log":{"level":"INFO","logger":"faitour","origin":{"file":{"line":28,"name":"/opt/Faitour/faitour.py"}}},"event":{"provider":"faitour","type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"reason","reason":"An update is available. Please run 'update.py' to apply these updates.","outcome":"unknown"}}
 ```
 
 If you run `update.py` manually, you will be prompted to choose if you would like to update.
