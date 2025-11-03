@@ -48,7 +48,10 @@ class TelnetServer:
 			username = client_socket.recv(1024).decode(errors='ignore').strip()
 			return username
 		except ConnectionResetError as e:
-			logger.error(f'"type":["connection","end"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Possible NMAP scan connection reset by peer","outcome":"failure"}},"error":{{"message":"{e}"')
+			logger.error(f'"type":["connection","end"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Connection reset by peer at user prompt","outcome":"failure"}},"error":{{"message":"{e}"')
+			return None
+		except Exception as e:
+			logger.error(f'"type":["connection","end"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Connection error at username prompt","outcome":"failure"}},"error":{{"message":"{e}"')
 			return None
 
 	# Prompt for password
