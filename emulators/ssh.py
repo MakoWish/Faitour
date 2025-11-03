@@ -2,6 +2,7 @@ import os
 import json
 import codecs
 import socket
+import select
 import threading
 import traceback
 import utils.config as config
@@ -130,10 +131,21 @@ class SSHServer:
 		self.thread.start()
 		self.running = True
 
+	def _looks_like_ssh_banner(self, sock, peek_timeout=1.0):
+		try:
+			r, _, _ = select.select([sock], [], [], peek_timeout)
+			if not r:
+				return False  # nothing sent (likely a bare TCP probe)
+			data = sock.recv(8, socket.MSG_PEEK)  # don't consume
+			return data.startswith(b"SSH-")
+		except Exception:
+			return False
+
 	def run_server(self):
 		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow reuse of port
+		self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
 		self.server_socket.bind((self.host_ip, self.host_port))
 		self.server_socket.listen(100)
 		self.server_socket.settimeout(1)  # Set a timeout to avoid blocking indefinitely
@@ -141,32 +153,76 @@ class SSHServer:
 		while self.running:
 			try:
 				client_socket, client_address = self.server_socket.accept()
-				client_ip = client_address[0]
-				client_port = client_address[1]
-				logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"run_server","reason":"SSH server accepted connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
-
-				self.transport = Transport(client_socket)
-				self.transport.add_server_key(self.host_key)
-				# Send our custom version string from config
-				self.transport.local_version = config.get_service_by_name("ssh")["fingerprint"].strip()
-				server = SimpleSSHServer(client_ip, client_port)
-				self.transport.start_server(server=server)
-				channel = self.transport.accept()
-				if channel is None:
-					continue
-
-				server.event.wait(10)
-				if not server.event.is_set():
-
-					logger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH no shell request received, closing channel","outcome":"failure"')
-					channel.close()
-					continue
-
-				self.handle_shell(channel)
-			except Exception as e:
-				if isinstance(e, OSError) and not self.running:
-					# Stop gracefully after closing socket
+			except socket.timeout:
+				continue	# Loop back and keep accepting
+			except OSError as e:
+				if not self.running:
 					break
+				logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"OSError exception on connection: {e}","outcome":"failure"')
+				continue
+			except Exception as e:
+				logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Listener unexpected exception: {e}","outcome":"failure"')
+
+			# Pass off each connection to its own thread to prevent blocking
+			t = threading.Thread(
+				target=self._handle_client,
+				args=(client_socket, client_address),
+				daemon=True
+			)
+			t.start()
+
+	def _handle_client(self, client_socket, client_address):
+		client_ip, client_port = client_address
+		transport = None
+		try:
+			# If the client doesn't speak SSH, it might just be a TCP port check
+			if not self._looks_like_ssh_banner(client_socket, peek_timeout=1.0):
+				logger.debug(f'"type":["connection","end"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"run_server","reason":"Client does not speak SSH","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				return
+
+			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"run_server","reason":"SSH server accepted connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			transport = Transport(client_socket)
+			transport.add_server_key(self.host_key)
+
+			# Send our custom version string from config
+			transport.local_version = config.get_service_by_name("ssh")["fingerprint"].strip()
+
+			server = SimpleSSHServer(client_ip, client_port)
+			transport.start_server(server=server)
+
+			# Wait for a channel with a bounded timeout
+			channel = transport.accept(timeout=10.0)
+			if channel is None:
+				# No channel. Clean up this Transport and try again
+				logger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"No channel established. Closing...","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				transport.close()
+				return
+
+			# Bound channel I/O operations
+			channel.settimeout(300.0)  # idle session timeout
+
+			server.event.wait(10)
+			if not server.event.is_set():
+				logger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH no shell request received, closing channel","outcome":"failure"')
+				channel.close()
+				transport.close()
+				return
+
+			self.handle_shell(channel)
+
+		except Exception as e:
+			logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Client handler error: {e}","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		finally:
+			try:
+				if transport is not None:
+					transport.close()
+			except Exception:
+				logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Error closing transport","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			try:
+				client_socket.close()
+			except Exception:
+				logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Error closing client socket","outcome":"failure"')
+				logger.exception('Error closing client socket')
 
 	def handle_shell(self, channel):
 		try:
