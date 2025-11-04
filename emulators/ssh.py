@@ -19,21 +19,22 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 
 class SimpleSSHServer(ServerInterface):
-	USERNAME = config.get_service_by_name("ssh")["username"]
-	PASSWORD = config.get_service_by_name("ssh")["password"]
 	ROOT_DIR = os.path.abspath("./emulators/ssh_root")
-
 	def __init__(self, client_ip=None, client_port=None):
 		self.event = threading.Event()
 		self.client_ip = client_ip
 		self.client_port = client_port
+		self.USERNAME = config.get_service_by_name("ssh")["username"]
+		self.PASSWORD = config.get_service_by_name("ssh")["password"]
+		self.host_ip = config.get_value("network.adapter.ip")
+		self.host_port = config.get_service_by_name("ssh")["port"]
 
 	def check_auth_password(self, username, password):
 		# Validate the username and password
 		if username == self.USERNAME and password == self.PASSWORD:
-			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication successful","outcome":"success"}},"user":{{"name":"{username}","password":"{password}"}},"source":{{"ip":"{self.client_ip}","port":{self.client_port}')
+			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication successful","outcome":"success"}},"user":{{"name":"{username}","password":"{password}"}},"source":{{"ip":"{self.client_ip}","port":{self.client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			return AUTH_SUCCESSFUL
-		logger.warning(f'"type":["connection","denied"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication failed","outcome":"failure"}},"user":{{"name":"{username}","password":"{password}"}},"source":{{"ip":"{self.client_ip}","port":{self.client_port}')
+		logger.warning(f'"type":["connection","denied"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication failed","outcome":"failure"}},"user":{{"name":"{username}","password":"{password}"}},"source":{{"ip":"{self.client_ip}","port":{self.client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		return None
 
 	def check_channel_request(self, kind, chanid):
@@ -41,30 +42,27 @@ class SimpleSSHServer(ServerInterface):
 			return OPEN_SUCCEEDED
 		return None
 
-	def get_allowed_auths(self, username):
-		return "password"
-
 	def check_channel_pty_request(self, channel, term, width, height, pixelwidth, pixelheight, modes):
 		client_ip, client_port = channel.getpeername()
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_pty_request","reason":"SSH PTY requested","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}')
+		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_pty_request","reason":"SSH PTY requested","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		return True
 
 	def check_channel_shell_request(self, channel):
 		client_ip, client_port = channel.getpeername()
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_shell_request","reason":"SSH shell requested","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}')
+		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_shell_request","reason":"SSH shell requested","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.event.set()
 		return True
 
 	def check_channel_subsystem_request(self, channel, name):
 		if name == "sftp":
 			client_ip, client_port = channel.getpeername()
-			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_subsystem_request","reason":"SFTP subsystem requested","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}')
+			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_subsystem_request","reason":"SFTP subsystem requested","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			return True
 		return False
 
 	def open_sftp_server(self, channel):
 		client_ip, client_port = channel.getpeername()
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"open_sftp_server","reason":"SFTP server opening","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}')
+		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"open_sftp_server","reason":"SFTP server opening","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		return SimpleSFTPServer(channel)
 
 class SimpleSFTPServer(SFTPServer):
@@ -110,13 +108,12 @@ class SimpleSFTPServer(SFTPServer):
 			raise
 
 class SSHServer:
-	bash_hostname = config.get_service_by_name("ssh")["hostname"]
-	bash_username = config.get_service_by_name("ssh")["username"]
-
 	def __init__(self):
 		self.running = False
 		self.host_ip = config.get_value("network.adapter.ip")
 		self.host_port = config.get_service_by_name("ssh")["port"]
+		self.bash_hostname = config.get_service_by_name("ssh")["hostname"]
+		self.bash_username = config.get_service_by_name("ssh")["username"]
 		self.server_socket = None
 		self.transport = None
 		self.thread = None
@@ -227,7 +224,7 @@ class SSHServer:
 	def handle_shell(self, channel):
 		try:
 			client_ip, client_port = channel.getpeername()
-			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{self.bash_username}"')
 
 			# Send the login banner from config
 			ssh_banner = codecs.decode(config.get_service_by_name("ssh")["login_banner"], "unicode_escape").encode("latin1")
@@ -245,7 +242,7 @@ class SSHServer:
 						command = buffer.strip()
 						buffer = ""
 
-						logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH client: {json.dumps(command)[1:-1]}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+						logger.info(f'"type":["start"],"kind":"alert","category":["process","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH client: {json.dumps(command)[1:-1]}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"process":{{"command_line":"{command}"}},"user":{{"name":"{self.bash_username}"')
 						if command.lower() in ["exit", "quit"]:
 							channel.send("\r\nGoodbye!\r\n")
 							return
