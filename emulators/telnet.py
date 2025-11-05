@@ -18,7 +18,7 @@ class TelnetServer:
 	# Starts the telnet server.
 	def start(self):
 		if not os.path.exists(self.root_dir):
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"Root directory {self.root_dir} does not exist","outcome":"failure"}},"error":{{"message":"Directory does not exist"')
+			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Root directory {self.root_dir} does not exist","outcome":"failure"}},"error":{{"message":"Directory does not exist"')
 			return
 
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -26,7 +26,7 @@ class TelnetServer:
 		self.server_socket.bind((self.host_ip, self.host_port))
 		self.server_socket.listen(5)
 		self.running = True
-		logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"Telnet server started on {self.host_ip}:{self.host_port}","outcome":"success"')
+		logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Telnet server started on {self.host_ip}:{self.host_port}","outcome":"success"')
 
 		while self.running:
 			try:
@@ -39,19 +39,22 @@ class TelnetServer:
 				client_thread.start()
 				self.clients.append((client_socket, client_thread))
 			except Exception as e:
-				logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"Server error","outcome":"failure"}},"error":{{"message":"{e}"')
+				logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Server error","outcome":"failure"}},"error":{{"message":"{e}"')
 
 	# Prompt for username
-	def get_username(self, client_socket):
+	def get_username(self, client_socket, address):
+		# Get client IP and port from address
+		client_ip, client_port = address
+
 		client_socket.send(b"Username: ")
 		try:
 			username = client_socket.recv(1024).decode(errors='ignore').strip()
 			return username
 		except ConnectionResetError as e:
-			logger.error(f'"type":["connection","end"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Connection reset by peer at user prompt","outcome":"failure"}},"error":{{"message":"{e}"')
+			logger.error(f'"type":["connection","end"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"get_username","reason":"Connection reset by peer at user prompt","outcome":"failure"}},"error":{{"message":"{e}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			return None
 		except Exception as e:
-			logger.error(f'"type":["connection","end"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Connection error at username prompt","outcome":"failure"}},"error":{{"message":"{e}"')
+			logger.error(f'"type":["connection","end"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"get_username","reason":"Connection error at username prompt","outcome":"failure"}},"error":{{"message":"{e}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			return None
 
 	# Prompt for password
@@ -63,8 +66,7 @@ class TelnetServer:
 	# Handle client interaction
 	def handle_client(self, client_socket, address):
 		# Get client IP and port from address
-		client_ip = address[0]
-		client_port = address[1]
+		client_ip, client_port = address
 
 		# If initial data does not start with 0xFF, this is likely an NMAP service fingerprinting scan
 		data = client_socket.recv(1024)
@@ -76,12 +78,12 @@ class TelnetServer:
 			client_socket.sendall(binary_fingerprint)
 
 		# Prompt for username
-		username = self.get_username(client_socket)
+		username = self.get_username(client_socket, address)
 		if not username:
 			# Connection was lost or reset. Exit
 			return None
 
-		logger.info(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"start","reason":"User name received","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}"')
+		logger.info(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User name received","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}"')
 
 		# Prompt for password
 		password = self.get_password(client_socket)
