@@ -1,3 +1,7 @@
+Version 2.3.0
+Enhancement
+Refactored logging to facilitate datasets with Elastic Integration PR
+
 Version 2.2.2
 Bug Fix
 Fix issue where SSH stops accepting connections.

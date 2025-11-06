@@ -6,7 +6,8 @@ import select
 import threading
 import traceback
 import utils.config as config
-from utils.logger import logger
+from utils.logger import appLogger
+from utils.logger import honeyLogger
 from paramiko import ServerInterface, Transport, AUTH_SUCCESSFUL, OPEN_SUCCEEDED, SFTPServer
 from paramiko.sftp_server import SFTPServerInterface, SFTPAttributes
 from paramiko import RSAKey
@@ -32,9 +33,9 @@ class SimpleSSHServer(ServerInterface):
 	def check_auth_password(self, username, password):
 		# Validate the username and password
 		if username == self.USERNAME and password == self.PASSWORD:
-			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication successful","outcome":"success"}},"user":{{"name":"{username}","password":"{password}"}},"source":{{"ip":"{self.client_ip}","port":{self.client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			honeyLogger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication successful","outcome":"success"}},"user":{{"name":"{username}","password":"{password}"}},"source":{{"ip":"{self.client_ip}","port":{self.client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			return AUTH_SUCCESSFUL
-		logger.warning(f'"type":["connection","denied"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication failed","outcome":"failure"}},"user":{{"name":"{username}","password":"{password}"}},"source":{{"ip":"{self.client_ip}","port":{self.client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		honeyLogger.warning(f'"type":["connection","denied"],"kind":"alert","category":["network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_auth_password","reason":"SSH authentication failed","outcome":"failure"}},"user":{{"name":"{username}","password":"{password}"}},"source":{{"ip":"{self.client_ip}","port":{self.client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		return None
 
 	def check_channel_request(self, kind, chanid):
@@ -44,25 +45,25 @@ class SimpleSSHServer(ServerInterface):
 
 	def check_channel_pty_request(self, channel, term, width, height, pixelwidth, pixelheight, modes):
 		client_ip, client_port = channel.getpeername()
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_pty_request","reason":"SSH PTY requested","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		honeyLogger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_pty_request","reason":"SSH PTY requested","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		return True
 
 	def check_channel_shell_request(self, channel):
 		client_ip, client_port = channel.getpeername()
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_shell_request","reason":"SSH shell requested","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		honeyLogger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_shell_request","reason":"SSH shell requested","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		self.event.set()
 		return True
 
 	def check_channel_subsystem_request(self, channel, name):
 		if name == "sftp":
 			client_ip, client_port = channel.getpeername()
-			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_subsystem_request","reason":"SFTP subsystem requested","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			honeyLogger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"check_channel_subsystem_request","reason":"SFTP subsystem requested","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			return True
 		return False
 
 	def open_sftp_server(self, channel):
 		client_ip, client_port = channel.getpeername()
-		logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"open_sftp_server","reason":"SFTP server opening","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+		honeyLogger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"open_sftp_server","reason":"SFTP server opening","outcome":"success"}},"user":{{"name":"{self.USERNAME}","password":"{self.PASSWORD}"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		return SimpleSFTPServer(channel)
 
 class SimpleSFTPServer(SFTPServer):
@@ -72,7 +73,7 @@ class SimpleSFTPServer(SFTPServer):
 	def _realpath(self, path):
 		real_path = os.path.abspath(os.path.join(SimpleSSHServer.ROOT_DIR, path.lstrip("/")))
 		if not real_path.startswith(SimpleSSHServer.ROOT_DIR):
-			logger.warning(f'"type":["connection","denied"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"_realpath","reason":"Access denied to path: {path}","outcome":"success"')
+			appLogger.warning(f'"type":["connection","denied"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"_realpath","reason":"Access denied to path: {path}","outcome":"success"')
 		return real_path
 
 	def list_folder(self, path):
@@ -86,7 +87,7 @@ class SimpleSFTPServer(SFTPServer):
 				attributes.append(SFTPAttributes.from_stat(stats, file))
 			return attributes
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"list_folder","reason":"Error listing folder {path}","outcome":"failure"}},"error":{{"message":"{e}"')
+			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"list_folder","reason":"Error listing folder {path}","outcome":"failure"}},"error":{{"message":"{e}"')
 			raise
 
 	def stat(self, path):
@@ -95,7 +96,7 @@ class SimpleSFTPServer(SFTPServer):
 			stats = os.stat(real_path)
 			return SFTPAttributes.from_stat(stats)
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stat","reason":"Error stat\'ing path {path}","outcome":"failure"}},"error":{{"message":"{e}"')
+			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stat","reason":"Error stat\'ing path {path}","outcome":"failure"}},"error":{{"message":"{e}"')
 			raise
 
 	def open(self, path, flags, attr):
@@ -104,7 +105,7 @@ class SimpleSFTPServer(SFTPServer):
 			mode = {os.O_RDONLY: "rb", os.O_WRONLY: "wb"}.get(flags & (os.O_RDONLY | os.O_WRONLY))
 			return open(real_path, mode)
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"open","reason":"ErrorError opening file {path}","outcome":"failure"}},"error":{{"message":"{e}"')
+			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"open","reason":"ErrorError opening file {path}","outcome":"failure"}},"error":{{"message":"{e}"')
 			raise
 
 class SSHServer:
@@ -139,7 +140,7 @@ class SSHServer:
 			return False
 
 	def run_server(self):
-		logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
+		appLogger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"success"')
 		self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow reuse of port
 		self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
@@ -174,10 +175,10 @@ class SSHServer:
 		try:
 			# If the client doesn't speak SSH, it might just be a TCP port check
 			if not self._looks_like_ssh_banner(client_socket, peek_timeout=1.0):
-				logger.debug(f'"type":["connection","end"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"run_server","reason":"Client does not speak SSH","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				honeyLogger.debug(f'"type":["connection","end"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"run_server","reason":"Client does not speak SSH","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 				return
 
-			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"run_server","reason":"SSH server accepted connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			honeyLogger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"run_server","reason":"SSH server accepted connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			transport = Transport(client_socket)
 			transport.add_server_key(self.host_key)
 
@@ -191,7 +192,7 @@ class SSHServer:
 			channel = transport.accept(timeout=10.0)
 			if channel is None:
 				# No channel. Clean up this Transport and try again
-				logger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"No channel established. Closing...","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				appLogger.debug(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"No channel established. Closing...","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 				transport.close()
 				return
 
@@ -200,7 +201,7 @@ class SSHServer:
 
 			server.event.wait(10)
 			if not server.event.is_set():
-				logger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH no shell request received, closing channel","outcome":"failure"')
+				appLogger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH no shell request received, closing channel","outcome":"failure"')
 				channel.close()
 				transport.close()
 				return
@@ -224,7 +225,7 @@ class SSHServer:
 	def handle_shell(self, channel):
 		try:
 			client_ip, client_port = channel.getpeername()
-			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{self.bash_username}"')
+			honeyLogger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH connection","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{self.bash_username}"')
 
 			# Send the login banner from config
 			ssh_banner = codecs.decode(config.get_service_by_name("ssh")["login_banner"], "unicode_escape").encode("latin1")
@@ -242,7 +243,7 @@ class SSHServer:
 						command = buffer.strip()
 						buffer = ""
 
-						logger.info(f'"type":["start"],"kind":"alert","category":["process","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH client: {json.dumps(command)[1:-1]}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"process":{{"command_line":"{command}"}},"user":{{"name":"{self.bash_username}"')
+						honeyLogger.info(f'"type":["start"],"kind":"alert","category":["process","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_shell","reason":"SSH client: {json.dumps(command)[1:-1]}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"process":{{"command_line":"{command}"}},"user":{{"name":"{self.bash_username}"')
 						if command.lower() in ["exit", "quit"]:
 							channel.send("\r\nGoodbye!\r\n")
 							return
@@ -280,13 +281,13 @@ class SSHServer:
 						buffer += char
 						channel.send(char)  # Echo back typed character
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"SSH shell handling error","outcome":"failure"}},"error":{{"message":"{e}"')
+			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"SSH shell handling error","outcome":"failure"}},"error":{{"message":"{e}"')
 		finally:
 			channel.close()
 
 	# Stops the SSH server.
 	def stop(self):
-		logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SSH server emulator is stopping","outcome":"success"')
+		appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SSH server emulator is stopping","outcome":"success"')
 		self.running = False
 		if self.server_socket:
 			self.server_socket.close()  # Interrupt the blocking accept() call
@@ -298,20 +299,20 @@ class SSHServer:
 			self.thread.join()  # Wait for the server thread to finish
 			self.thread = None
 
-		logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SSH server emulator has stopped","outcome":"success"')
+		appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SSH server emulator has stopped","outcome":"success"')
 
 	# Generates a self-signed certificate and private key if they do not already exist.
 	def get_ssh_key(self):
 		key_path = "./emulators/ssh_key"
 
 		if not os.path.exists(key_path):
-			logger.info(f'"type":["info","creation"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"get_ssh_key","reason":"Generating new SSH RSA key {key_path}","outcome":"success"')
+			appLogger.info(f'"type":["info","creation"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"get_ssh_key","reason":"Generating new SSH RSA key {key_path}","outcome":"success"')
 			# Generate a new RSA key
 			key = RSAKey.generate(2048)
 			key.write_private_key_file(key_path)
 		else:
 			# Read the existing key from the file
-			logger.debug(f'"type":["info","creation"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"get_ssh_key","reason":"RSA key {key_path} already exists","outcome":"success"')
+			appLogger.debug(f'"type":["info","creation"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"get_ssh_key","reason":"RSA key {key_path} already exists","outcome":"success"')
 			key = RSAKey(filename=key_path)
 
 		return key

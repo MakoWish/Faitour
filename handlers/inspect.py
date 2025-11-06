@@ -1,5 +1,6 @@
 import utils.config as config
-from utils.logger import logger
+from utils.logger import appLogger
+from utils.logger import honeyLogger
 from utils.fingerprint import fingerprint
 from handlers.ecn_check import ecn_detect
 from handlers.udp_check import udp_detect
