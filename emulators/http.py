@@ -7,7 +7,8 @@ import http.server
 import utils.config as config
 from socketserver import TCPServer
 from urllib.parse import parse_qs, urlunparse, urlparse
-from utils.logger import logger
+from utils.logger import appLogger
+from utils.logger import honeyLogger
 from datetime import datetime, timedelta
 from http.cookies import SimpleCookie
 from cryptography import x509
@@ -70,7 +71,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		return False
 
 	def send_error_page(self, response_code: int):
-		logger.info(f'"type":["connection","denied"],"kind":"alert","category":["web","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"http_get","reason":"HTTP GET Request","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"GET"}},"response":{{"status_code":{response_code}}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(self.path)}')
+		honeyLogger.info(f'"type":["connection","denied"],"kind":"alert","category":["web","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"http_get","reason":"HTTP GET Request","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"GET"}},"response":{{"status_code":{response_code}}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(self.path)}')
 		self.send_response(response_code)
 		self.send_header("Content-type", "text/html")
 		#self.set_common_headers()
@@ -92,7 +93,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 				self.wfile.write(b"404 Not Found")
 
 	def serve_page(self, method, status_code, path):
-		logger.info(f'"type":["connection","allowed","info"],"kind":"alert","category":["web","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"http_get","reason":"HTTP {method} Request","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"{method}"}},"response":{{"status_code":{status_code}}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(path)}')
+		honeyLogger.info(f'"type":["connection","allowed","info"],"kind":"alert","category":["web","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"http_get","reason":"HTTP {method} Request","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"{method}"}},"response":{{"status_code":{status_code}}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(path)}')
 		self.send_response(status_code)
 		self.send_header("Content-type", "text/html")
 		if path == "/logout.html":
@@ -161,7 +162,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		try:
 			post_data = self.rfile.read(content_length)
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["web","process"],"dataset":"faitour.application","action":"do_POST","reason":"HTTP POST error","outcome":"failure"}},"error":{{"message":"{e}"')
+			appLogger.error(f'"type":["error"],"kind":"event","category":["web","process"],"dataset":"faitour.application","action":"do_POST","reason":"HTTP POST error","outcome":"failure"}},"error":{{"message":"{e}"')
 
 		# Parse the form data
 		if content_type == "application/x-www-form-urlencoded":
@@ -176,7 +177,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 
 		# Validate the credentials (you can add your own logic here)
 		if username == config.get_service_by_name("http")["username"] and password == config.get_service_by_name("http")["password"]:
-			logger.info(f'"type":["allowed"],"kind":"alert","category":["web","network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"login","reason":"User login success","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":200}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(self.path)}}},"user":{{"name":"{username}","password":"{password}"')
+			honeyLogger.info(f'"type":["allowed"],"kind":"alert","category":["web","network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"login","reason":"User login success","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":200}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(self.path)}}},"user":{{"name":"{username}","password":"{password}"')
 			cookie = SimpleCookie()
 			cookie["session"] = "authenticated"  # This is intentionally insecure
 			cookie["session"]["httponly"] = True
@@ -190,7 +191,7 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 			with open(f"{self.http_root}/index.html", "r") as file:
 				self.wfile.write(file.read().encode("utf-8"))
 		else:
-			logger.error(f'"type":["denied"],"kind":"alert","category":["web","network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"login_fail","reason":"User login failed","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":401}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(self.path)}}},"user":{{"name":"{username}","password":"{password}"')
+			honeyLogger.error(f'"type":["denied"],"kind":"alert","category":["web","network","authentication","intrusion_detection"],"dataset":"faitour.honeypot","action":"login_fail","reason":"User login failed","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"POST"}},"response":{{"status_code":401}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(self.path)}}},"user":{{"name":"{username}","password":"{password}"')
 			self.send_error_page(401)
 
 class WebServer:
@@ -207,11 +208,11 @@ class WebServer:
 	def start_http(self):
 		if self.http_enabled:
 			self.running = True
-			logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTP server emulator is starting on http://{self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTP server emulator is starting on http://{self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			TCPServer.allow_reuse_address = True
 			httpd_http = TCPServer((self.host_ip, self.host_port), LoginPageHandler)
 			httpd_http.serve_forever()
-			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTP server emulator has started on http://{self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			appLogger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTP server emulator has started on http://{self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 	def start_https(self):
 		if self.https_enabled:
@@ -220,7 +221,7 @@ class WebServer:
 			# Generate certs if they don't exist
 			self.generate_self_signed_cert()
 
-			logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTPS server emulator is starting on https://{self.host_ip}:{self.https_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTPS server emulator is starting on https://{self.host_ip}:{self.https_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			TCPServer.allow_reuse_address = True
 			httpd_https = TCPServer((self.host_ip, self.https_port), LoginPageHandler)
 
@@ -232,7 +233,7 @@ class WebServer:
 			httpd_https.socket = context.wrap_socket(httpd_https.socket, server_side=True)
 
 			httpd_https.serve_forever()
-			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTPS server emulator has started on https://{self.host_ip}:{self.https_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.https_port}')
+			appLogger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTPS server emulator has started on https://{self.host_ip}:{self.https_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.https_port}')
 
 	def start_servers(self):
 		if self.http_enabled:
@@ -248,19 +249,19 @@ class WebServer:
 	def stop_servers(self):
 		# Stop the HTTP server if it's running
 		if self.httpd_http:
-			logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTP server emulator is stopping","outcome":"unknown"')
+			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTP server emulator is stopping","outcome":"unknown"')
 			self.httpd_http.shutdown()
 			self.httpd_http.server_close()
 			self.httpd_http = None
-			logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTP server emulator has stopped","outcome":"success"')
+			appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTP server emulator has stopped","outcome":"success"')
 
 		# Stop the HTTPS server if it's running
 		if self.httpd_https:
-			logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTPS server emulator is stopping","outcome":"unknown"')
+			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTPS server emulator is stopping","outcome":"unknown"')
 			self.httpd_https.shutdown()
 			self.httpd_https.server_close()
 			self.httpd_https = None
-			logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTPS server emulator has stopped","outcome":"success"')
+			appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTPS server emulator has stopped","outcome":"success"')
 
 	def generate_self_signed_cert(self):
 		# Set cert and key paths
@@ -269,7 +270,7 @@ class WebServer:
 
 		# Check if the certificate and key files already exist
 		if os.path.exists(cert_path) and os.path.exists(key_path):
-			logger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"generate_self_signed_cert","reason":"HTTP certificate and key already exist","outcome":"success"')
+			appLogger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"generate_self_signed_cert","reason":"HTTP certificate and key already exist","outcome":"success"')
 			return
 
 		# Generate a private key
@@ -325,4 +326,4 @@ class WebServer:
 				certificate.public_bytes(encoding=serialization.Encoding.PEM)
 			)
 
-		logger.debug(f'"type":["creation"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"generate_self_signed_cert","reason":"HTTPS Self-signed certificate and key generated","outcome":"success"')
+		appLogger.debug(f'"type":["creation"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"generate_self_signed_cert","reason":"HTTPS Self-signed certificate and key generated","outcome":"success"')

@@ -2,7 +2,8 @@ import codecs
 import socket
 import threading
 import utils.config as config
-from utils.logger import logger
+from utils.logger import appLogger
+from utils.logger import honeyLogger
 
 class RDServer:
 	# Initialize the mock RDP server.
@@ -15,22 +16,22 @@ class RDServer:
 	# Start the mock RDP server.
 	def start(self):
 		if self.running:
-			logger.debug(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"RDP server emulator is already running","outcome":"success"')
+			appLogger.debug(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"RDP server emulator is already running","outcome":"success"')
 			return
 
 		try:
-			logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"RDP server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"RDP server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Enable port reuse
 			self.server_socket.bind((self.host_ip, self.host_port))
 			self.server_socket.listen(5)
 			self.running = True
-			logger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"RDP server emulator started on {self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			appLogger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"RDP server emulator started on {self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 			# Start accepting connections in a separate thread
 			threading.Thread(target=self.accept_connections, daemon=True).start()
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"RDP failed to start server","outcome":"failure"}},"error":{{"message":"{e}"')
+			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"RDP failed to start server","outcome":"failure"}},"error":{{"message":"{e}"')
 
 	# Stop the mock RDP server.
 	def stop(self):
@@ -38,14 +39,14 @@ class RDServer:
 			return
 
 		try:
-			logger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"RDP server emulator is stopping","outcome":"unknown"')
+			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"RDP server emulator is stopping","outcome":"unknown"')
 			if self.server_socket:
 				self.server_socket.close()
 				self.server_socket = None
 			self.running = False
-			logger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"RDP server emulator has stopped","outcome":"success"')
+			appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"RDP server emulator has stopped","outcome":"success"')
 		except Exception as e:
-			logger.error(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"RDP failed to stop server","outcome":"failure"}},"error":{{"message":"{e}"')
+			appLogger.error(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"RDP failed to stop server","outcome":"failure"}},"error":{{"message":"{e}"')
 
 	# Handle incoming connections to the mock RDP server.
 	def accept_connections(self):
@@ -56,13 +57,13 @@ class RDServer:
 				client_ip = address[0]
 				client_port = address[1]
 				
-				logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"accept_connections","reason":"RDP connection attempt","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				honeyLogger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"accept_connections","reason":"RDP connection attempt","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 				
 				# Handle the connection in a separate thread
 				threading.Thread(target=self.handle_client, args=(client_socket, address), daemon=True).start()
 			except Exception as e:
 				if self.running:  # Only log if server is running
-					logger.error(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"accept_connections","reason":"RDP error accepting connections","outcome":"failure"}},"error":{{"message":"{e}"')
+					appLogger.error(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"accept_connections","reason":"RDP error accepting connections","outcome":"failure"}},"error":{{"message":"{e}"')
 
 	# Simulate interaction with a client.
 	def handle_client(self, client_socket, address):
@@ -74,10 +75,10 @@ class RDServer:
 			# If initial data does not start with 0xFF, this is likely an NMAP service fingerprinting scan
 			data = client_socket.recv(1024)
 			if not data or data[0] != 0xff:
-				logger.warning(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Initial client data appears to be RDP service fingerprinting attempt","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				honeyLogger.warning(f'"type":["connection","start"],"kind":"event","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Initial client data appears to be RDP service fingerprinting attempt","outcome":"unknown"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
-			logger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Simulating RDP handshake","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			honeyLogger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"Simulating RDP handshake","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		except Exception as e:
-			logger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_client","reason":"Error handling client","outcome":"failure"}},"error":{{"message":"{e}"')
+			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_client","reason":"Error handling client","outcome":"failure"}},"error":{{"message":"{e}"')
 		finally:
 			client_socket.close()

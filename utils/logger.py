@@ -9,9 +9,8 @@ from logging.handlers import RotatingFileHandler
 # Class for logging based on application configuration
 #===============================================================================
 class Logger:
-	def __init__(self):
+	def __init__(self, log_name):
 		# Get the core values for our logger
-		log_name = config.get_value('logging.name')
 		log_level = config.get_value('logging.level')
 		file_logging = config.get_value('logging.file.enabled')
 		stdout_logging = config.get_value('logging.stdout.enabled')
@@ -72,4 +71,5 @@ class Logger:
 
 
 # Instantiate a shared instance of the Logger class
-logger = Logger().get_logger()
+appLogger = Logger("application").get_logger()
+honeyLogger = Logger("honeypot").get_logger()

@@ -12,7 +12,6 @@ network:
 # Logging configuration
 logging:
   level: INFO    # DEBUG, INFO, WARN, ERROR, CRITICAL
-  name: faitour
   stdout:
     enabled: True
   file:

@@ -3,7 +3,6 @@
 import re
 import random
 import utils.config as config
-from utils.logger import logger
 
 
 class Fingerprint:

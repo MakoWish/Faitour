@@ -2,7 +2,8 @@
 
 from scapy.all import IP, TCP, Ether
 from utils.config import if_sock
-from utils.logger import logger
+from utils.logger import appLogger
+from utils.logger import honeyLogger
 
 
 def seqgen_detect(nfq_packet, packet, fingerprint):
@@ -40,57 +41,57 @@ def seqgen_detect(nfq_packet, packet, fingerprint):
 	# ----------------------------------------------------------------------------
 
 	if nmap_seq1:
-		logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq1 packet match","outcome":"success"')
+		appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq1 packet match","outcome":"success"')
 		nfq_packet.drop()
 		if fingerprint.do_respond['PKT_1']:
 			spoofed_packet = craft(packet, fingerprint, '1')
 			if_sock.send(spoofed_packet)
-			logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
+			appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
 		return True
 
 	elif nmap_seq2:
-		logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq2 packet match","outcome":"success"')
+		appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq2 packet match","outcome":"success"')
 		nfq_packet.drop()
 		if fingerprint.do_respond['PKT_2']:
 			spoofed_packet = craft(packet, fingerprint, '2')
 			if_sock.send(spoofed_packet)
-			logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
+			appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
 		return True
 
 	elif nmap_seq3:
-		logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq3 packet match","outcome":"success"')
+		appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq3 packet match","outcome":"success"')
 		nfq_packet.drop()
 		if fingerprint.do_respond['PKT_3']:
 			spoofed_packet = craft(packet, fingerprint, '3')
 			if_sock.send(spoofed_packet)
-			logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
+			appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
 		return True
 
 	elif nmap_seq4:
-		logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq4 packet match","outcome":"success"')
+		appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq4 packet match","outcome":"success"')
 		nfq_packet.drop()
 		if fingerprint.do_respond['PKT_4']:
 			spoofed_packet = craft(packet, fingerprint, '4')
 			if_sock.send(spoofed_packet)
-			logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
+			appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
 		return True
 
 	elif nmap_seq5:
-		logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq5 packet match","outcome":"success"')
+		appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq5 packet match","outcome":"success"')
 		nfq_packet.drop()
 		if fingerprint.do_respond['PKT_5']:
 			spoofed_packet = craft(packet, fingerprint, '5')
 			if_sock.send(spoofed_packet)
-			logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
+			appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
 		return True
 
 	elif nmap_seq6:
-		logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq6 packet match","outcome":"success"')
+		appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Drop packet for match to nmap_seq6 packet match","outcome":"success"')
 		nfq_packet.drop()
 		if fingerprint.do_respond['PKT_6']:
 			spoofed_packet = craft(packet, fingerprint, '6')
 			if_sock.send(spoofed_packet)
-			logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
+			appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Sending spoofed packet","outcome":"success"')
 		return True
 
 	else:
@@ -98,7 +99,7 @@ def seqgen_detect(nfq_packet, packet, fingerprint):
 
 
 def craft(packet, fingerprint, pkt_number):
-	logger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Craft spoofed packet due to SEQ{pkt_number} packet match","outcome":"success"')
+	appLogger.debug(f'"type":["info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"seqgen_detect","reason":"Craft spoofed packet due to SEQ{pkt_number} packet match","outcome":"success"')
 	try:
 		ether = Ether()
 		ether.dst = packet[Ether].dst
