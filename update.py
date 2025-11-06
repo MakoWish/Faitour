@@ -8,7 +8,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 
-GITHUB_REPO = "https://github.com/MakoWish/Faitour2"
+GITHUB_REPO = "https://github.com/MakoWish/Faitour"
 VERSION_FILE = "version.txt"
 REPO_VERSION_URL = f"{GITHUB_REPO}/raw/main/{VERSION_FILE}"
 ZIP_URL = f"{GITHUB_REPO}/archive/main.zip"
@@ -71,7 +71,7 @@ def download_and_extract():
 		exec_files = get_executable_files()
 
 		with ZipFile(zip_path, "r") as zip_ref:
-			extracted_folder = "Faitour2-main"
+			extracted_folder = "Faitour-main"
 			zip_ref.extractall()
 
 			for item in Path(extracted_folder).rglob("*"):
@@ -111,19 +111,23 @@ def check(silent=False):
 		if silent:
 			return True
 		else:
-			user_input = input(f"\n[!] A newer version ({remote_version}) is available.\n\nView the change log here: https://github.com/MakoWish/Faitour2/blob/main/changelog.txt\n\nUpdate from your current version ({local_version}) now? (y/n): ").strip().lower()
+			user_input = input(f"\n[!] A newer version ({remote_version}) is available.\n\nView the change log here: https://github.com/MakoWish/Faitour/blob/main/changelog.txt\n\nUpdate from your current version ({local_version}) now? (y/n): ").strip().lower()
 			if user_input == "y":
 				download_and_extract()
-				print("Update completed. Please restart the application.")
+				print("Update completed. Please restart the application for the changes to take effect.\n")
 			else:
 				print("Update skipped.")
 	else:
 		if silent:
 			return False
 		else:
-			print(f"You are already on the latest version {local_version}.")
+			print(f"\nYou are already on the latest version {local_version}.\n")
 
 
 # Module entry point
 if __name__ == "__main__":
-	check()
+	try:
+		check()
+	except KeyboardInterrupt:
+		print("\n\n")
+		exit()
