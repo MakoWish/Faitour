@@ -196,6 +196,10 @@ If you have any questions about installation, or would just like to discuss the 
 
 If you would like to contribute to this project, please first open an issue with your idea so we can discuss it.
 
+## Donate
+
+Like this project? [Buy me a coffee!](buymeacoffee.com/MakoWish)
+
 ## To Do
 
 ### Test and Finalize Modules
