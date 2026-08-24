@@ -8,7 +8,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 
-GITHUB_REPO = "https://github.com/MakoWish/Faitour2"
+GITHUB_REPO = "https://github.com/MakoWish/Faitour"
 VERSION_FILE = "version.txt"
 REPO_VERSION_URL = f"{GITHUB_REPO}/raw/main/{VERSION_FILE}"
 ZIP_URL = f"{GITHUB_REPO}/archive/main.zip"
@@ -111,7 +111,7 @@ def check(silent=False):
 		if silent:
 			return True
 		else:
-			user_input = input(f"A newer version ({remote_version}) is available.\n\nView the change log here: https://github.com/MakoWish/Faitour2/blob/main/changelog.txt\n\nUpdate from your current version ({local_version}) now? (y/n): ").strip().lower()
+			user_input = input(f"A newer version ({remote_version}) is available.\n\nView the change log here: https://github.com/MakoWish/Faitour/blob/main/changelog.txt\n\nUpdate from your current version ({local_version}) now? (y/n): ").strip().lower()
 			if user_input == "y":
 				download_and_extract()
 				print("Update completed. Please restart the application.")
