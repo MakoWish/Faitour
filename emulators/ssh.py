@@ -156,10 +156,10 @@ class SSHServer:
 			except OSError as e:
 				if not self.running:
 					break
-				logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"OSError exception on connection: {e}","outcome":"failure"')
+				appLogger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"OSError exception on connection: {e}","outcome":"failure"')
 				continue
 			except Exception as e:
-				logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Listener unexpected exception: {e}","outcome":"failure"')
+				appLogger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Listener unexpected exception: {e}","outcome":"failure"')
 
 			# Pass off each connection to its own thread to prevent blocking
 			t = threading.Thread(
@@ -209,18 +209,18 @@ class SSHServer:
 			self.handle_shell(channel)
 
 		except Exception as e:
-			logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Client handler error: {e}","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+			appLogger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Client handler error: {e}","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 		finally:
 			try:
 				if transport is not None:
 					transport.close()
 			except Exception:
-				logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Error closing transport","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
+				appLogger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Error closing transport","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}')
 			try:
 				client_socket.close()
 			except Exception:
 				logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Error closing client socket","outcome":"failure"')
-				logger.exception('Error closing client socket')
+				appLogger.exception('Error closing client socket')
 
 	def handle_shell(self, channel):
 		try:

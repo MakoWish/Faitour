@@ -1,3 +1,7 @@
+Version 2.3.1
+Bug Fix
+Fixed logging issue in ssh.py emulator.
+
 Version 2.3.0
 Enhancement
 Refactored logging to facilitate datasets with Elastic Integration PR
