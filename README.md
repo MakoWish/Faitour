@@ -188,6 +188,10 @@ If you run `update.py` manually, you will be prompted to choose if you would lik
 
 I have included some resources within the `elastic` folder to help integrate your Faitour logs with Elastic for monitoring and alerting on honeypot activity. Please review the Elastic [README.md](./elastic/README.md) for details on installing those resources.
 
+### SYN logging whitelist
+
+To prevent trusted monitoring services from creating SYN packet activity logs, add their source IP addresses to the `whitelist` file in the application root. The file accepts one individual IPv4/IPv6 address or CIDR range per line. Blank lines and comments beginning with `#` are ignored, and inline comments are also supported. Restart Faitour after changing the file so the entries are reloaded.
+
 ## Questions and Discussions
 
 If you have any questions about installation, or would just like to discuss the project, please start a [discussion](../../discussions) to get the conversation going.
