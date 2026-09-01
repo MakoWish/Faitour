@@ -1,11 +1,12 @@
-import base64
 import socket
+import subprocess
 import threading
+import time
 import utils.config as config
 from handlers.inspect import inspector
 from netfilterqueue import NetfilterQueue
-from subprocess import DEVNULL, STDOUT, check_call, Popen
-from scapy.all import *
+from subprocess import DEVNULL, STDOUT
+from scapy.all import ICMP, IP, TCP, UDP
 from scapy.contrib.igmp import IGMP
 from utils.logger import appLogger
 from utils.logger import honeyLogger
@@ -68,7 +69,7 @@ def handle_packet(nfq_packet):
 				nfq_packet.accept()
 
 		else:
-			appLogger.debug(f'"type":["connection","protocol","info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"intercept_packet","reason":"Non-IP packet received","outcome":"success"')
+			appLogger.debug('"type":["connection","protocol","info"],"kind":"event","category":["network"],"dataset":"faitour.application","action":"intercept_packet","reason":"Non-IP packet received","outcome":"success"')
 			nfq_packet.accept()
 
 	except Exception as e:
@@ -82,24 +83,48 @@ def handle_packet(nfq_packet):
 #===============================================================================
 # Function to add rules to iptables
 #===============================================================================
+FAITOUR_CHAIN = "FAITOUR"
+SYSCTL_KEYS = (
+	"net.ipv4.conf.all.arp_ignore",
+	"net.ipv4.conf.all.arp_announce",
+	"net.ipv4.conf.all.rp_filter",
+	"net.ipv4.ip_forward",
+)
+original_sysctls = {}
+
+
+def _run(command, check=True):
+	return subprocess.run(command, stdout=DEVNULL, stderr=STDOUT, check=check)
+
+
 def set_rules():
-	Popen(["sysctl", "net.ipv4.conf.all.arp_ignore=1"], stdout=DEVNULL, stderr=STDOUT).wait()
-	Popen(["sysctl", "net.ipv4.conf.all.arp_announce=2"], stdout=DEVNULL, stderr=STDOUT).wait()
-	Popen(["sysctl", "net.ipv4.conf.all.rp_filter=2"], stdout=DEVNULL, stderr=STDOUT).wait()
-	Popen(["echo 1 | tee /proc/sys/net/ipv4/ip_forward"], stdout=DEVNULL, stderr=STDOUT, shell=True).wait()
-	Popen(["iptables", "-I", "INPUT", "-p", "tcp", "!", "-d", "127.0.0.1", "-j", "NFQUEUE", "--queue-num", "2"], stdout=DEVNULL, stderr=STDOUT).wait()
+	for key in SYSCTL_KEYS:
+		original_sysctls[key] = subprocess.check_output(["sysctl", "-n", key], text=True).strip()
+	for key, value in {
+		"net.ipv4.conf.all.arp_ignore": "1",
+		"net.ipv4.conf.all.arp_announce": "2",
+		"net.ipv4.conf.all.rp_filter": "2",
+		"net.ipv4.ip_forward": "1",
+	}.items():
+		_run(["sysctl", "-w", f"{key}={value}"])
+	_run(["iptables", "-N", FAITOUR_CHAIN], check=False)
+	_run(["iptables", "-F", FAITOUR_CHAIN])
+	if _run(["iptables", "-C", "INPUT", "-j", FAITOUR_CHAIN], check=False).returncode != 0:
+		_run(["iptables", "-I", "INPUT", "-j", FAITOUR_CHAIN])
+	for protocol in ("tcp", "udp", "icmp"):
+		_run(["iptables", "-A", FAITOUR_CHAIN, "-p", protocol, "!", "-d", "127.0.0.1", "-j", "NFQUEUE", "--queue-num", "2", "--queue-bypass"])
 
 
 #===============================================================================
 # Function to flush iptables and rules when shutting down
 #===============================================================================
 def flush_rules():
-	Popen(["sysctl", "net.ipv4.conf.all.arp_ignore=0"], stdout=DEVNULL, stderr=STDOUT).wait()
-	Popen(["sysctl", "net.ipv4.conf.all.arp_announce=0"], stdout=DEVNULL, stderr=STDOUT).wait()
-	Popen(["sysctl", "net.ipv4.conf.all.rp_filter=0"], stdout=DEVNULL, stderr=STDOUT).wait()
-	Popen(["echo 0 | tee /proc/sys/net/ipv4/ip_forward"], stdout=DEVNULL, stderr=STDOUT, shell=True).wait()
-	Popen(["iptables", "-D", "INPUT", "-p", "tcp", "!", "-d", "127.0.0.1", "-j", "NFQUEUE", "--queue-num", "2"], stdout=DEVNULL, stderr=STDOUT).wait()
-	Popen(["iptables", "-F"], stdout=DEVNULL, stderr=STDOUT).wait()
+	while _run(["iptables", "-D", "INPUT", "-j", FAITOUR_CHAIN], check=False).returncode == 0:
+		pass
+	_run(["iptables", "-F", FAITOUR_CHAIN], check=False)
+	_run(["iptables", "-X", FAITOUR_CHAIN], check=False)
+	for key, value in original_sysctls.items():
+		_run(["sysctl", "-w", f"{key}={value}"], check=False)
 
 
 #===============================================================================
@@ -121,25 +146,25 @@ def monitor_nfqueue_queue_size(nfqueue, max_queue_size, stop_event, interval=1):
 
 							# I am keeping this service restart as a fail-safe to ensure no conflicts with Elastic Agent, but
 							# I believe the recent change to the IP Tables rule renders this entire queue monitoring method obsolete.
-							appLogger.warn(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
+							appLogger.warn('"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
 							subprocess.run(["systemctl", "restart", "faitour.service"], check=False)
-							appLogger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restarted Faitour service","outcome":"success"')
+							appLogger.info('"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restarted Faitour service","outcome":"success"')
 					else:
-						appLogger.warn(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"Unexpected format in /proc/net/netfilter/nfnetlink_queue","outcome":"unknown"')
+						appLogger.warn('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"Unexpected format in /proc/net/netfilter/nfnetlink_queue","outcome":"unknown"')
 				else:
-					appLogger.warn(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue is empty or unreadable","outcome":"unknown"')
+					appLogger.warn('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue is empty or unreadable","outcome":"unknown"')
 
 					# Issue with queue. Restart the service
-					appLogger.error(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
+					appLogger.error('"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
 					subprocess.run(["systemctl", "restart", "faitour.service"], check=False)
-					appLogger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restarted Faitour service","outcome":"success"')
+					appLogger.info('"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restarted Faitour service","outcome":"success"')
 		except FileNotFoundError as e:
 			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"/proc/net/netfilter/nfnetlink_queue not found","outcome":"failure"}},"error":{{"message":"{e}"}}')
 
 			# Restart the service since it appears NFQUEUE may not be running
-			appLogger.warn(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
+			appLogger.warn('"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restart Faitour service...","outcome":"unknown"')
 			subprocess.run(["systemctl", "restart", "faitour.service"], check=False)
-			appLogger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restarted Faitour service","outcome":"success"')
+			appLogger.info('"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"bind_nfqueue","reason":"Restarted Faitour service","outcome":"success"')
 		except Exception as e:
 			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"monitor_nfqueue_queue_size","reason":"Error monitoring NFQUEUE queue size","outcome":"failure"}},"error":{{"message":"{e}"}}')
 
@@ -159,14 +184,22 @@ def start(max_queue_size):
 	whitelist_networks = load_whitelist(invalid_entry_callback=warn_invalid_whitelist_entry)
 
 	# Set our iptables and network rules
-	appLogger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"start","reason":"Network and iptables rules are being set","outcome":"unknown"')
-	set_rules()
-	appLogger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"end","reason":"Network and iptables rules have been set","outcome":"success"')
+	appLogger.info('"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"start","reason":"Network and iptables rules are being set","outcome":"unknown"')
+	try:
+		set_rules()
+	except Exception:
+		flush_rules()
+		raise
+	appLogger.info('"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"end","reason":"Network and iptables rules have been set","outcome":"success"')
 
 	# Create a NetfilterQueue object and bind it to queue number 2
 	nfqueue = NetfilterQueue()
-	nfqueue.bind(2, handle_packet, max_len=max_queue_size)
-	s = socket.fromfd(nfqueue.get_fd(), socket.AF_INET, socket.SOCK_STREAM)
+	try:
+		nfqueue.bind(2, handle_packet, max_len=max_queue_size)
+		s = socket.fromfd(nfqueue.get_fd(), socket.AF_INET, socket.SOCK_STREAM)
+	except Exception:
+		flush_rules()
+		raise
 
 	# Create a stop event for the monitor thread
 	stop_event = threading.Event()
@@ -176,30 +209,32 @@ def start(max_queue_size):
 	monitor_thread.daemon = True  # Ensure it terminates when the main program ends
 	monitor_thread.start()
 
+	exit_code = 0
 	try:
 		# Run the main nfqueue socket in the main thread
-		appLogger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"NFQUEUE socket is now intercepting packets","outcome":"success"')
+		appLogger.info('"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"NFQUEUE socket is now intercepting packets","outcome":"success"')
 		nfqueue.run_socket(s)
 
 	except KeyboardInterrupt:
-		appLogger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"end","reason":"Shutting down Faitour due to keyboard interrupt","outcome":"success"')
+		appLogger.info('"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"end","reason":"Shutting down Faitour due to keyboard interrupt","outcome":"success"')
 	except Exception as e:
 		appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"end","reason":"Shutting down Faitour due to unknown exception","outcome":"failure"}},"error":{{"message":"{e}"}}')
+		exit_code = 1
 	finally:
 		# Clean up resources
-		appLogger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"start","reason":"Network and iptables rules are being reset","outcome":"unknown"')
+		appLogger.info('"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"start","reason":"Network and iptables rules are being reset","outcome":"unknown"')
 		flush_rules()
-		appLogger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"end","reason":"Network and iptables rules have been reset","outcome":"success"')
+		appLogger.info('"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"end","reason":"Network and iptables rules have been reset","outcome":"success"')
 
-		appLogger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Unbinding NFQUEUE","outcome":"unknown"')
+		appLogger.info('"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Unbinding NFQUEUE","outcome":"unknown"')
 		nfqueue.unbind()
-		appLogger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"end","reason":"NFQUEUE has been unbound","outcome":"success"')
+		appLogger.info('"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"end","reason":"NFQUEUE has been unbound","outcome":"success"')
 
 		# Signal the monitor thread to stop and wait for it to finish
 		if monitor_thread.is_alive():
-			appLogger.info(f'"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Terminating NFQUEUE monitor","outcome":"unknown"')
+			appLogger.info('"type":["info","start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Terminating NFQUEUE monitor","outcome":"unknown"')
 			stop_event.set()
 			monitor_thread.join()
-			appLogger.info(f'"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"end","reason":"Terminated NFQUEUE monitor","outcome":"success"')
+			appLogger.info('"type":["info","end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"end","reason":"Terminated NFQUEUE monitor","outcome":"success"')
 
-	return 0
+	return exit_code

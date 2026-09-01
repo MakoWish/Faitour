@@ -50,12 +50,12 @@ class SMBv2Server:
 			return
 
 		try:
-			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SMBv2 server emulator is stopping","outcome":"unknown"')
+			appLogger.info('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SMBv2 server emulator is stopping","outcome":"unknown"')
 			if self.running:
 				self.server_socket.close()
 				self.server_socket = None
 			self.running = False
-			appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SMBv2 server emulator has stopped","outcome":"success"')
+			appLogger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SMBv2 server emulator has stopped","outcome":"success"')
 		except Exception as e:
 			appLogger.error(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"SMBv2 failed to stop server","outcome":"failure"}},"error":{{"message":"{e}"')
 
@@ -92,7 +92,7 @@ class SMBv2Server:
 			client_socket.close()
 
 	def process_request(self, request):
-		honeyLogger.info(f'"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"process_request","reason":"Received request","outcome":"success"')
+		honeyLogger.info('"type":["connection","allowed","start"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"process_request","reason":"Received request","outcome":"success"')
 		parts = request.split()
 
 		if len(parts) == 0:

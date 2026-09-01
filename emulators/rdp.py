@@ -1,4 +1,3 @@
-import codecs
 import socket
 import threading
 import utils.config as config
@@ -16,7 +15,7 @@ class RDServer:
 	# Start the mock RDP server.
 	def start(self):
 		if self.running:
-			appLogger.debug(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"RDP server emulator is already running","outcome":"success"')
+			appLogger.debug('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"RDP server emulator is already running","outcome":"success"')
 			return
 
 		try:
@@ -39,12 +38,12 @@ class RDServer:
 			return
 
 		try:
-			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"RDP server emulator is stopping","outcome":"unknown"')
+			appLogger.info('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"RDP server emulator is stopping","outcome":"unknown"')
 			if self.server_socket:
 				self.server_socket.close()
 				self.server_socket = None
 			self.running = False
-			appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"RDP server emulator has stopped","outcome":"success"')
+			appLogger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"RDP server emulator has stopped","outcome":"success"')
 		except Exception as e:
 			appLogger.error(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_packet","reason":"RDP failed to stop server","outcome":"failure"}},"error":{{"message":"{e}"')
 

@@ -120,6 +120,10 @@ NMAP's operating system fingerprints database can be found at: https://svn.nmap.
 
 Several services may be emulated, and some offer real interaction like FTP, Telnet, SSH, and HTTP(S). These services allow you to customize the port they run on, usernames:passwords that grant access to those services, and more. Many of these services provide file system access that you may customize to your liking. This may be a custom web page or pages in `./emulators/web_root`, or files in `./emulators/ftp_root` or `./emulators/telnet_root`. You may adjust the fingerprints to reflect the system type you are trying to emulate. I have provided some examples in `./samples/<service>.txt`. Please see [./samples/README.md](https://github.com/MakoWish/Faitour/tree/main/samples/README.md) for more details. 
 
+SSH and Telnet expose a deliberately limited virtual command interpreter. Commands operate only on their emulator root and are never passed to the host shell. Extend `utils/virtual_shell.py` when adding decoy commands; do not invoke host commands from an attacker-facing service.
+
+Submitted honeypot credentials, including plain-text passwords, are intentionally recorded in local events so the owner can analyze credential attacks. The supplied Elastic ingest pipeline redacts passwords before broader exposure. Protect local files and the systemd journal accordingly.
+
 Service Fingerprints can be found at: https://svn.nmap.org/nmap/nmap-service-probes
 
 Note that the majority of these fingerprints contain regex patterns. You should replace those regex patterns with data that would not only be matched by those patterns, but also matches the service you are attempting to spoof.
@@ -158,6 +162,13 @@ sudo ./faitour.py
 Once Faitour has been started, be sure to run an NMAP scan from another machine to ensure that everything is working as expected. 
 
 `nmap -sS -sV -O <ip address>`
+
+Contributors can run the non-privileged automated checks before deployment:
+
+```bash
+python3 -m unittest discover -s tests -v
+ruff check .
+```
 
 If using the default configuration, your results should look something like this:
 

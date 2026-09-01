@@ -1,0 +1,23 @@
+[project]
+name = "faitour"
+version = "2.0.0"
+requires-python = ">=3.12"
+dependencies = [
+  "cryptography>=41,<46",
+  "NetfilterQueue>=1.1,<2",
+  "paramiko>=3.4,<5",
+  "psutil>=5.9,<8",
+  "pyftpdlib>=1.5,<3",
+  "PyYAML>=6,<7",
+  "requests>=2.31,<3",
+  "scapy>=2.5,<3",
+  "smbprotocol>=1.12,<2",
+  "pysnmp>=6,<8",
+  "telnetlib3>=2,<3",
+]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

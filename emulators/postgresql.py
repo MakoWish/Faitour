@@ -15,7 +15,7 @@ class PostgreSQLServer:
 	# Starts the emulated PostgreSQL server.
 	def start(self):
 		if self.running:
-			appLogger.debug(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"PostgreSQL server emulator is already running","outcome":"success"')
+			appLogger.debug('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"PostgreSQL server emulator is already running","outcome":"success"')
 			return
 
 		try:
@@ -73,7 +73,7 @@ class PostgreSQLServer:
 	# Stops the emulated PostgreSQL server.
 	def stop(self):
 		if not self.running:
-			appLogger.debug(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"PostgreSQL server emulator is not running","outcome":"success"')
+			appLogger.debug('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"PostgreSQL server emulator is not running","outcome":"success"')
 			return
 
 		self.running = False
