@@ -1,0 +1,4 @@
+# Whitelist IP addresses/CIDR Ranges that you do not want logged
+# Add one IP address or CIDR range per line. For example:
+# 192.0.2.10
+# 198.51.100.0/24

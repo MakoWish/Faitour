@@ -73,6 +73,19 @@ You **_must_** change the default settings under `network`, or Faitour will fail
 
 Optionally, configure logging to fit your needs. By default, both file and stdout logging are enabled, but you may turn either or both off. If running as a `systemd` service (default), the stdout logging will be written to the systemd journal. If you will be ingesting events into Elastic, file logging is required, and I suggest keeping the default location of `/var/log/faitour/`, as the integration I am working on will look to that location by default.
 
+#### SYN Logging Whitelist
+
+Trusted health checks, such as Elastic Synthetics monitors, can be excluded from SYN packet activity logs by adding their source addresses to the `whitelist` file in the application root. Add one individual IPv4/IPv6 address or CIDR range per line. Blank lines, comments beginning with `#`, and inline comments are supported. For example:
+
+```text
+# Elastic Synthetics monitoring sources
+192.0.2.10
+198.51.100.0/24
+2001:db8::/32 # IPv6 monitoring range
+```
+
+Whitelist entries only suppress SYN activity logging; packets continue through the normal inspection and forwarding flow. Restart Faitour after changing the file so its entries are reloaded.
+
 Here is a snippet from the default `config.yml` detailing the required network and logging settings:
 
 ```yaml
@@ -182,7 +195,9 @@ A script `update.py` has been included to check for any updates to this reposito
 
 If you run `update.py` manually, you will be prompted to choose if you would like to update.
 
-**_NOTE: Updating will not overwrite your `config.yml`, nor custom content in the emulator root directories such as `emulators/ftp_root`.
+**_NOTE:_** Updating will not overwrite your `config.yml`, `whitelist`, nor custom content in the emulator root directories such as `emulators/ftp_root`.
+
+If no `whitelist` exists yet, the updater installs the default file. After an update, confirm that `version.txt` contains the advertised version before restarting Faitour; the updater now reports completion only after the archive has been applied successfully.
 
 ## Elastic Integration
 

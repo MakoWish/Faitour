@@ -1,3 +1,11 @@
+Version 2.4.1
+Bug Fix
+Fixed the updater's archive directory detection so updates and new default files are installed correctly.
+
+Version 2.4.0
+Enhancement
+Added an IP address and CIDR whitelist to suppress SYN packet activity logs from trusted monitoring sources.
+
 Version 2.3.1
 Bug Fix
 Fixed logging issue in ssh.py emulator.
