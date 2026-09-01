@@ -12,7 +12,7 @@ GITHUB_REPO = "https://github.com/MakoWish/Faitour"
 VERSION_FILE = "version.txt"
 REPO_VERSION_URL = f"{GITHUB_REPO}/raw/main/{VERSION_FILE}"
 ZIP_URL = f"{GITHUB_REPO}/archive/main.zip"
-EXCLUDE_FILES = {"config.yml"}
+EXCLUDE_FILES = {"config.yml", "whitelist"}
 EXCLUDE_FOLDERS = {"emulators/ftp_root", "emulators/http_root", "emulators/ssh_root", "emulators/telnet_root"}
 
 
@@ -76,10 +76,11 @@ def download_and_extract():
 
 			for item in Path(extracted_folder).rglob("*"):
 				relative_path = item.relative_to(extracted_folder)
-				if relative_path.name in EXCLUDE_FILES or any(str(relative_path).startswith(folder) for folder in EXCLUDE_FOLDERS):
+				dest = Path.cwd() / relative_path
+				if ((relative_path.name in EXCLUDE_FILES and dest.exists())
+						or any(str(relative_path).startswith(folder) for folder in EXCLUDE_FOLDERS)):
 					continue
 
-				dest = Path.cwd() / relative_path
 				if item.is_dir():
 					dest.mkdir(parents=True, exist_ok=True)
 				else:

@@ -9,6 +9,7 @@ from scapy.all import *
 from scapy.contrib.igmp import IGMP
 from utils.logger import appLogger
 from utils.logger import honeyLogger
+from utils.whitelist import is_whitelisted, load_whitelist
 
 
 #===============================================================================
@@ -37,7 +38,7 @@ def handle_packet(nfq_packet):
 				ip = packet[IP]
 
 				# If config.yml set to log SYN packets, log them for port scan detection
-				if (tcp.flags == "S" and tcp.ack == 0 and log_tcp_syn):
+				if (tcp.flags == "S" and tcp.ack == 0 and log_tcp_syn and not is_whitelisted(ip.src, whitelist_networks)):
 					honeyLogger.info(f'"type":["connection","start","allowed"],"kind":"alert","category":["network","intrusion_detection"],"dataset":"faitour.honeypot","action":"intercept_packet","reason":"SYN packet received","outcome":"success"}},"source":{{"ip":"{ip.src}","port":{tcp.sport}}},"destination":{{"ip":"{ip.dst}","port":{tcp.dport}')
 
 				# Inspect this TCP packet to see if it's part of an OS probe
@@ -150,6 +151,12 @@ def start(max_queue_size):
 	# Check to see if we should be logging SYN packets
 	global log_tcp_syn
 	log_tcp_syn = config.get_value("syn_logging")["tcp"]
+
+	# Load IP addresses and CIDR ranges whose SYN packets should not be logged
+	global whitelist_networks
+	def warn_invalid_whitelist_entry(line_number, _entry):
+		appLogger.warning(f'"type":["error"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"load_whitelist","reason":"Ignoring invalid whitelist entry on line {line_number}","outcome":"failure"')
+	whitelist_networks = load_whitelist(invalid_entry_callback=warn_invalid_whitelist_entry)
 
 	# Set our iptables and network rules
 	appLogger.info(f'"type":["info","change"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"start","reason":"Network and iptables rules are being set","outcome":"unknown"')
