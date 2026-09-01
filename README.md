@@ -197,6 +197,8 @@ If you run `update.py` manually, you will be prompted to choose if you would lik
 
 **_NOTE:_** Updating will not overwrite your `config.yml`, `whitelist`, nor custom content in the emulator root directories such as `emulators/ftp_root`.
 
+If no `whitelist` exists yet, the updater installs the default file. After an update, confirm that `version.txt` contains the advertised version before restarting Faitour; the updater now reports completion only after the archive has been applied successfully.
+
 ## Elastic Integration
 
 I have included some resources within the `elastic` folder to help integrate your Faitour logs with Elastic for monitoring and alerting on honeypot activity. Please review the Elastic [README.md](./elastic/README.md) for details on installing those resources.

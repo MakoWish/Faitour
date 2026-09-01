@@ -61,9 +61,11 @@ def copy_with_permissions(src, dest):
 
 # Download and extract from GitHub
 def download_and_extract():
+	zip_path = Path("update.zip")
+	extracted_folder = None
 	try:
-		zip_path = "update.zip"
-		response = requests.get(ZIP_URL, stream=True)
+		response = requests.get(ZIP_URL, stream=True, timeout=30)
+		response.raise_for_status()
 		with open(zip_path, "wb") as f:
 			for chunk in response.iter_content(1024):
 				f.write(chunk)
@@ -71,7 +73,11 @@ def download_and_extract():
 		exec_files = get_executable_files()
 
 		with ZipFile(zip_path, "r") as zip_ref:
-			extracted_folder = "Faitour2-main"
+			archive_roots = {Path(name).parts[0] for name in zip_ref.namelist() if Path(name).parts}
+			if len(archive_roots) != 1:
+				raise ValueError("Update archive has an unexpected directory structure")
+
+			extracted_folder = Path(archive_roots.pop())
 			zip_ref.extractall()
 
 			for item in Path(extracted_folder).rglob("*"):
@@ -86,13 +92,18 @@ def download_and_extract():
 				else:
 					copy_with_permissions(str(item), str(dest))
 
-		shutil.rmtree(extracted_folder)
-		os.remove(zip_path)
 		restore_executable_permissions(exec_files)
 		print("Update applied successfully.")
+		return True
 
 	except Exception as e:
 		print(f"Update failed: {e}")
+		return False
+	finally:
+		if extracted_folder and extracted_folder.exists():
+			shutil.rmtree(extracted_folder)
+		if zip_path.exists():
+			zip_path.unlink()
 
 
 # Main function
@@ -114,8 +125,8 @@ def check(silent=False):
 		else:
 			user_input = input(f"A newer version ({remote_version}) is available.\n\nView the change log here: https://github.com/MakoWish/Faitour/blob/main/changelog.txt\n\nUpdate from your current version ({local_version}) now? (y/n): ").strip().lower()
 			if user_input == "y":
-				download_and_extract()
-				print("Update completed. Please restart the application.")
+				if download_and_extract():
+					print("Update completed. Please restart the application.")
 			else:
 				print("Update skipped.")
 	else:
