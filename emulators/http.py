@@ -1,11 +1,11 @@
 import os
 import ssl
 import json
-import socket
 import threading
 import http.server
 import utils.config as config
-from socketserver import TCPServer
+from pathlib import Path
+from socketserver import ThreadingTCPServer
 from urllib.parse import parse_qs, urlunparse, urlparse
 from utils.logger import appLogger
 from utils.logger import honeyLogger
@@ -22,6 +22,17 @@ from cryptography.hazmat.primitives import serialization
 class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 	http_root = "./emulators/http_root"
 	default_doc = config.get_service_by_name("http")["default_doc"]
+	max_request_body = 1024 * 1024
+
+	def resolve_request_path(self, path=None):
+		request_path = urlparse(path if path is not None else self.path).path
+		root = Path(self.http_root).resolve()
+		candidate = (root / request_path.lstrip("/")).resolve()
+		try:
+			candidate.relative_to(root)
+		except ValueError as exc:
+			raise PermissionError("Requested path is outside the HTTP root") from exc
+		return candidate
 
 	def log_message(self, format, *args):
 		# This method is overridden to do nothing, effectively disabling the log output
@@ -74,8 +85,6 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		honeyLogger.info(f'"type":["connection","denied"],"kind":"alert","category":["web","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"http_get","reason":"HTTP GET Request","outcome":"failure"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"GET"}},"response":{{"status_code":{response_code}}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(self.path)}')
 		self.send_response(response_code)
 		self.send_header("Content-type", "text/html")
-		#self.set_common_headers()
-		self.send_header("Server", config.get_service_by_name("http")["server_header"])
 		self.end_headers()
 		error_page_path = f"{self.http_root}/error_pages/{response_code}.html"
 
@@ -85,12 +94,8 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 				self.wfile.write(content.encode("utf-8"))
 		except FileNotFoundError:
 			# Fallback if custom error page is missing
-			if response_code == 401:
-				self.wfile.write(b"401 Unauthorized")
-			if response_code == 404:
-				self.wfile.write(b"403 Forbidden")
-			if response_code == 404:
-				self.wfile.write(b"404 Not Found")
+			fallbacks = {401: b"401 Unauthorized", 404: b"404 Not Found", 413: b"413 Payload Too Large"}
+			self.wfile.write(fallbacks.get(response_code, f"{response_code} Error".encode()))
 
 	def serve_page(self, method, status_code, path):
 		honeyLogger.info(f'"type":["connection","allowed","info"],"kind":"alert","category":["web","network","intrusion_detection"],"dataset":"faitour.honeypot","action":"http_get","reason":"HTTP {method} Request","outcome":"success"}},"source":{{"ip":"{self.client_address[0]}","port":{self.client_address[1]}}},"destination":{{"ip":"{self.server.server_address[0]}","port":{self.server.server_address[1]}}},"http":{{"request":{{"method":"{method}"}},"response":{{"status_code":{status_code}}}}},"url":{{"full":{self.get_full_url()},"path":{json.dumps(path)}')
@@ -98,65 +103,44 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 		self.send_header("Content-type", "text/html")
 		if path == "/logout.html":
 			self.send_header("Set-Cookie", "session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly")
-		self.send_header("Server", config.get_service_by_name("http")["server_header"])
 		self.end_headers()
-		with open(f"{self.http_root}{path}", "r") as file:
+		with self.resolve_request_path(path).open("r") as file:
 			self.wfile.write(file.read().encode("utf-8"))
 
 	def do_GET(self):
-		if self.path.endswith("README.md"):
-			# Explicitly return 404 for any README.md files
+		request_path = urlparse(self.path).path
+		if request_path.endswith("README.md"):
 			self.send_error_page(404)
-		elif os.path.exists(f"{self.http_root}/{self.path}"):
-			if os.path.isfile(f"{self.http_root}/{self.path}"):
-				# Check to see if this is a protected document
-				with open(f"{self.http_root}/{self.path}", "r") as file:
-					if "PROTECTED" in file.readline().strip():
-						protected = True
-					else:
-						protected = False
-
-				if protected:
-					if self.is_authenticated():
-						# Protected but authenticated. Serve the page.
-						self.serve_page("GET", 200, self.path)
-					else:
-						# Protected but not authenticated.
-						self.send_error_page(401)
-				else:
-					# Not protected. Serve the page.
-					self.serve_page("GET", 200, self.path)
-			else:
-				# Requested path was a directory. See if there is a default document
-				if os.path.exists(f"{self.http_root}/{self.path}/{self.default_doc}"):
-					# Check to see if this should be a protected document
-					with open(f"{self.http_root}/{self.path}/{self.default_doc}", "r") as file:
-						if "PROTECTED" in file.readline().strip():
-							protected = True
-						else:
-							protected = False
-
-					if protected:
-						if self.is_authenticated():
-							# Protected but authenticated. Serve the page.
-							self.serve_page("GET", 200, f"{self.path}/{self.default_doc}")
-						else:
-							# Protected but not authenticated.
-							self.send_error_page(401)
-					else:
-						# Not protected. Serve the page.
-						self.serve_page("GET", 200, f"{self.path}/{self.default_doc}")
-				else:
-					# Page does not exist.
-					self.send_error_page(404)
-		else:
-			# If it's any other path, return 404
+			return
+		try:
+			resolved_path = self.resolve_request_path(request_path)
+		except PermissionError:
 			self.send_error_page(404)
+			return
+		if resolved_path.is_dir():
+			request_path = f"{request_path.rstrip('/')}/{self.default_doc}"
+			resolved_path = self.resolve_request_path(request_path)
+		if not resolved_path.is_file():
+			self.send_error_page(404)
+			return
+		with resolved_path.open("r") as file:
+			protected = "PROTECTED" in file.readline().strip()
+		if protected and not self.is_authenticated():
+			self.send_error_page(401)
+			return
+		self.serve_page("GET", 200, request_path)
 
 	def do_POST(self):
 		# Parse the content type and content length
 		content_type = self.headers.get("Content-Type")
-		content_length = int(self.headers.get("Content-Length", 0))
+		try:
+			content_length = int(self.headers.get("Content-Length", 0))
+		except ValueError:
+			self.send_error_page(400)
+			return
+		if content_length < 0 or content_length > self.max_request_body:
+			self.send_error_page(413)
+			return
 
 		# Read the form data
 		try:
@@ -183,7 +167,6 @@ class LoginPageHandler(http.server.BaseHTTPRequestHandler):
 			cookie["session"]["httponly"] = True
 			cookie["session"]["max-age"] = 3600  # 1 hour
 			self.send_response(200)
-			self.send_header("Server", config.get_service_by_name("http")["server_header"])
 			self.send_header("Content-type", "text/html")
 			for morsel in cookie.values():
 				self.send_header("Set-Cookie", morsel.OutputString())
@@ -209,9 +192,9 @@ class WebServer:
 		if self.http_enabled:
 			self.running = True
 			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTP server emulator is starting on http://{self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
-			TCPServer.allow_reuse_address = True
-			httpd_http = TCPServer((self.host_ip, self.host_port), LoginPageHandler)
-			httpd_http.serve_forever()
+			ThreadingTCPServer.allow_reuse_address = True
+			self.httpd_http = ThreadingTCPServer((self.host_ip, self.host_port), LoginPageHandler)
+			self.httpd_http.serve_forever()
 			appLogger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTP server emulator has started on http://{self.host_ip}:{self.host_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
 
 	def start_https(self):
@@ -222,17 +205,17 @@ class WebServer:
 			self.generate_self_signed_cert()
 
 			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTPS server emulator is starting on https://{self.host_ip}:{self.https_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
-			TCPServer.allow_reuse_address = True
-			httpd_https = TCPServer((self.host_ip, self.https_port), LoginPageHandler)
+			ThreadingTCPServer.allow_reuse_address = True
+			self.httpd_https = ThreadingTCPServer((self.host_ip, self.https_port), LoginPageHandler)
 
 			# Create an SSL context
 			context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
 			context.load_cert_chain(certfile='./emulators/http_cert.pem', keyfile='./emulators/http_key.pem')
 
 			# Wrap the server socket with the SSL context
-			httpd_https.socket = context.wrap_socket(httpd_https.socket, server_side=True)
+			self.httpd_https.socket = context.wrap_socket(self.httpd_https.socket, server_side=True)
 
-			httpd_https.serve_forever()
+			self.httpd_https.serve_forever()
 			appLogger.info(f'"type":["start"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start_http","reason":"HTTPS server emulator has started on https://{self.host_ip}:{self.https_port}","outcome":"success"}},"server":{{"ip":"{self.host_ip}","port":{self.https_port}')
 
 	def start_servers(self):
@@ -249,19 +232,19 @@ class WebServer:
 	def stop_servers(self):
 		# Stop the HTTP server if it's running
 		if self.httpd_http:
-			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTP server emulator is stopping","outcome":"unknown"')
+			appLogger.info('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTP server emulator is stopping","outcome":"unknown"')
 			self.httpd_http.shutdown()
 			self.httpd_http.server_close()
 			self.httpd_http = None
-			appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTP server emulator has stopped","outcome":"success"')
+			appLogger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTP server emulator has stopped","outcome":"success"')
 
 		# Stop the HTTPS server if it's running
 		if self.httpd_https:
-			appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTPS server emulator is stopping","outcome":"unknown"')
+			appLogger.info('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTPS server emulator is stopping","outcome":"unknown"')
 			self.httpd_https.shutdown()
 			self.httpd_https.server_close()
 			self.httpd_https = None
-			appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTPS server emulator has stopped","outcome":"success"')
+			appLogger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop_servers","reason":"HTTPS server emulator has stopped","outcome":"success"')
 
 	def generate_self_signed_cert(self):
 		# Set cert and key paths
@@ -270,7 +253,7 @@ class WebServer:
 
 		# Check if the certificate and key files already exist
 		if os.path.exists(cert_path) and os.path.exists(key_path):
-			appLogger.debug(f'"type":["info"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"generate_self_signed_cert","reason":"HTTP certificate and key already exist","outcome":"success"')
+			appLogger.debug('"type":["info"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"generate_self_signed_cert","reason":"HTTP certificate and key already exist","outcome":"success"')
 			return
 
 		# Generate a private key
@@ -326,4 +309,4 @@ class WebServer:
 				certificate.public_bytes(encoding=serialization.Encoding.PEM)
 			)
 
-		appLogger.debug(f'"type":["creation"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"generate_self_signed_cert","reason":"HTTPS Self-signed certificate and key generated","outcome":"success"')
+		appLogger.debug('"type":["creation"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"generate_self_signed_cert","reason":"HTTPS Self-signed certificate and key generated","outcome":"success"')

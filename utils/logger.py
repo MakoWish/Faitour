@@ -3,6 +3,7 @@ import time
 import logging
 import utils.config as config
 from logging.handlers import RotatingFileHandler
+from utils.ecs_formatter import ECSFormatter
 
 
 #===============================================================================
@@ -23,7 +24,7 @@ class Logger:
 		if stdout_logging:
 			# Add a stdout handler if enabled
 			stdoutLogger = logging.StreamHandler()
-			stdoutLogger.setFormatter(logging.Formatter('{"timestamp":"%(asctime)s.%(msecs)03d","log":{"level":"%(levelname)s","logger":"%(name)s","origin":{"file":{"line":%(lineno)s,"name":"%(pathname)s"}}},"event":{"provider":"%(module)s",%(message)s}}', datefmt='%Y-%m-%dT%H:%M:%S'))
+			stdoutLogger.setFormatter(ECSFormatter())
 			self.logger.addHandler(stdoutLogger)
 
 			# Confirm that our stdout logger has been configured
@@ -40,7 +41,7 @@ class Logger:
 
 			# Use a RotatingFileHandler for our file logger (log => log.1 => log.2 => ...)
 			fileLogger = RotatingFileHandler(log_dir + log_name, maxBytes=log_size, backupCount=log_count)
-			fileLogger.setFormatter(logging.Formatter('{"timestamp":"%(asctime)s.%(msecs)03d","log":{"level":"%(levelname)s","logger":"%(name)s","origin":{"file":{"line":%(lineno)s,"name":"%(pathname)s"}}},"event":{"provider":"%(module)s",%(message)s}}', datefmt='%Y-%m-%dT%H:%M:%S'))			
+			fileLogger.setFormatter(ECSFormatter())
 
 			# Add both file and stdout handlers to the logger
 			self.logger.addHandler(fileLogger)

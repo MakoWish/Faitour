@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import sys
 import time
 import utils.config as config
 import handlers.intercept as intercept
@@ -16,12 +17,12 @@ def main():
 	# Ensure we are running as root/sudo
 	if os.geteuid() != 0:
 		appLogger.critical('"type":["start","error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"Application must be run as root/sudo","outcome":"failure"')
-		os._exit(5)
+		return 5
 
 	# Ensure our configuration looks okay
 	if not config.is_valid():
 		appLogger.critical('"type":["error"],"kind":"event","category":["configuration"],"dataset":"faitour.application","action":"check_config","reason":"Default configuration found","outcome":"failure"')
-		return False
+		return 2
 
 	# Check if there are any updates available
 	if update_available(silent=True):
@@ -38,18 +39,24 @@ def main():
 	max_queue_size = config.get_value("network.max_queue_size")
 
 	# Start intercepting packets
-	intercept.start(max_queue_size)
+	try:
+		return intercept.start(max_queue_size)
+	finally:
+		emulators.stop()
 
 
 #===============================================================================
 # Application entry point
 #===============================================================================
 if __name__ == "__main__":
+	exit_code = 0
 	try:
-		main()
+		exit_code = main()
 	except Exception as e:
 		appLogger.error(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"end","reason":"{e}","outcome":"failure"')
+		exit_code = 1
 	finally:
 		time.sleep(2) # Pause just to give things time to fully shut down in case of a service restart
-		appLogger.info('"type":["end","info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"end","reason":"Faitour has stopped","outcome":"success"')
-		os._exit(0)
+		outcome = "success" if exit_code == 0 else "failure"
+		appLogger.info(f'"type":["end","info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"end","reason":"Faitour has stopped","outcome":"{outcome}"')
+	sys.exit(exit_code)

@@ -15,7 +15,7 @@ class MSSQLEmulator:
 	# Start the MSSQL emulator server.
 	def start(self):
 		if self.running:
-			appLogger.debug(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"MSSQL server emulator is already running","outcome":"success"')
+			appLogger.debug('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"MSSQL server emulator is already running","outcome":"success"')
 			return
 
 		appLogger.info(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"MSSQL server emulator is starting on {self.host_ip}:{self.host_port}","outcome":"unknown"}},"server":{{"ip":"{self.host_ip}","port":{self.host_port}')
@@ -58,7 +58,7 @@ class MSSQLEmulator:
 	# Stop the server.
 	def stop(self):
 		if not self.running:
-			appLogger.debug(f'"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"MSSQL server emulator is not running","outcome":"success"')
+			appLogger.debug('"type":["info"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"MSSQL server emulator is not running","outcome":"success"')
 			return
 
 		if self.server_socket:

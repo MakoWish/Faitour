@@ -2,10 +2,10 @@ import os
 import codecs
 import socket
 import threading
-import subprocess
 import utils.config as config
 from utils.logger import appLogger
 from utils.logger import honeyLogger
+from utils.virtual_shell import VirtualShell
 
 class TelnetServer:
 	def __init__(self):
@@ -103,6 +103,7 @@ class TelnetServer:
 		# Handles interactions with the connected telnet client.
 		client_socket.send(config.get_service_by_name("telnet")["login_banner"].encode("utf-8"))
 		current_dir = self.root_dir
+		shell = VirtualShell(self.root_dir, start_dir=".")
 
 		try:
 			while True:
@@ -124,46 +125,9 @@ class TelnetServer:
 					client_socket.send(b"Goodbye!\n")
 					break
 
-				# Handle shell-like commands
-				if data.startswith("cd "):
-					path = data[3:].strip()
-					new_dir = os.path.abspath(os.path.join(current_dir, path))
-					# Ensure the directory is within the root_dir
-					if os.path.commonpath([self.root_dir, new_dir]) == self.root_dir and os.path.exists(new_dir) and os.path.isdir(new_dir):
-						current_dir = new_dir
-						honeyLogger.info(f'"type":["access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User access to {new_dir} granted","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"directory":"{new_dir}"')
-					else:
-						client_socket.send(b"Directory not found or access denied.\n")
-						honeyLogger.error(f'"type":["access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User access to {new_dir} denied","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"directory":"{new_dir}"')
-				elif data == "ls":
-					try:
-						files = os.listdir(current_dir)
-						response = "\n".join(files) + "\n"
-						client_socket.send(response.encode())
-						honeyLogger.info(f'"type":["access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User listed directory {current_dir}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"directory":"{current_dir}"')
-					except Exception as e:
-						client_socket.send(f"Error listing directory: {e}\n".encode())
-						honeyLogger.error(f'"type":["access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User attempt to list directory {current_dir} failed","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"error":{{"message":"{e}"}},"file":{{"directory":"{current_dir}"')
-				elif data.startswith("cat "):
-					filename = data[4:].strip()
-					filepath = os.path.abspath(os.path.join(current_dir, filename))
-					# Ensure the file is within the root_dir
-					if os.path.commonpath([self.root_dir, filepath]) == self.root_dir and os.path.exists(filepath) and os.path.isfile(filepath):
-						with open(filepath, 'r') as f:
-							client_socket.send(f.read().encode())
-							client_socket.send(b'\r\n')
-							honeyLogger.info(f'"type":["access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User cat\'ed contents of file {filepath}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"file":{{"name":"{filename}","directory":"{filepath}"')
-					else:
-						client_socket.send(b"File not found or access denied.\n")
-						honeyLogger.error(f'"type":["access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User attempt to cat file {filepath} failed","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"error":{{"message":"File not found or access denied"')
-				else:
-					try:
-						result = subprocess.check_output(data, shell=True, cwd=current_dir, stderr=subprocess.STDOUT)
-						client_socket.send(result)
-						honeyLogger.info(f'"type":["access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User ran unhandled command {data}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"')
-					except subprocess.CalledProcessError as e:
-						client_socket.send(e.output or b"Command failed.\n")
-						honeyLogger.error(f'"type":["access","denied"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User command {data} failed","outcome":"failure"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"}},"error":{{"message":"{e}"')
+					result = shell.run(data)
+					client_socket.send((result + "\n").encode())
+					honeyLogger.info(f'"type":["access","allowed"],"kind":"alert","category":["file","intrusion_detection"],"dataset":"faitour.honeypot","action":"handle_client","reason":"User ran virtual command {data}","outcome":"success"}},"source":{{"ip":"{client_ip}","port":{client_port}}},"destination":{{"ip":"{self.host_ip}","port":{self.host_port}}},"user":{{"name":"{username}","password":"{password}"')
 		except Exception as e:
 			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"handle_client","reason":"Client error","outcome":"failure"}},"error":{{"message":"{e}"')
 		finally:
@@ -171,7 +135,7 @@ class TelnetServer:
 
 	# Stops the telnet server.
 	def stop(self):
-		appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"Telnet server emulator is stopping","outcome":"success"')
+		appLogger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"Telnet server emulator is stopping","outcome":"success"')
 		self.running = False
 		if self.server_socket:
 			self.server_socket.close()
@@ -182,4 +146,4 @@ class TelnetServer:
 
 		# Clear the list of clients
 		self.clients = []
-		appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"Telnet server emulator has stopped","outcome":"success"')
+		appLogger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"Telnet server emulator has stopped","outcome":"success"')

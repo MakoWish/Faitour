@@ -4,20 +4,14 @@ import codecs
 import socket
 import select
 import threading
-import traceback
 import utils.config as config
+from utils.virtual_shell import VirtualShell
 from utils.logger import appLogger
 from utils.logger import honeyLogger
 from paramiko import ServerInterface, Transport, AUTH_SUCCESSFUL, OPEN_SUCCEEDED, SFTPServer
-from paramiko.sftp_server import SFTPServerInterface, SFTPAttributes
+from paramiko.sftp_server import SFTPAttributes
 from paramiko import RSAKey
 #from socket import socket, AF_INET, SOCK_STREAM, SOL_SOCKET, SO_REUSEADDR
-from datetime import datetime, timedelta
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization
 
 class SimpleSSHServer(ServerInterface):
 	ROOT_DIR = os.path.abspath("./emulators/ssh_root")
@@ -71,9 +65,10 @@ class SimpleSFTPServer(SFTPServer):
 		super().__init__(channel)
 
 	def _realpath(self, path):
-		real_path = os.path.abspath(os.path.join(SimpleSSHServer.ROOT_DIR, path.lstrip("/")))
-		if not real_path.startswith(SimpleSSHServer.ROOT_DIR):
-			appLogger.warning(f'"type":["connection","denied"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"_realpath","reason":"Access denied to path: {path}","outcome":"success"')
+		root = os.path.realpath(SimpleSSHServer.ROOT_DIR)
+		real_path = os.path.realpath(os.path.join(root, path.lstrip("/")))
+		if os.path.commonpath((root, real_path)) != root:
+			raise PermissionError(f"Access denied to path: {path}")
 		return real_path
 
 	def list_folder(self, path):
@@ -201,7 +196,7 @@ class SSHServer:
 
 			server.event.wait(10)
 			if not server.event.is_set():
-				appLogger.warning(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH no shell request received, closing channel","outcome":"failure"')
+				appLogger.warning('"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"SSH no shell request received, closing channel","outcome":"failure"')
 				channel.close()
 				transport.close()
 				return
@@ -219,8 +214,7 @@ class SSHServer:
 			try:
 				client_socket.close()
 			except Exception:
-				logger.exception(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Error closing client socket","outcome":"failure"')
-				appLogger.exception('Error closing client socket')
+				appLogger.exception('"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"run_server","reason":"Error closing client socket","outcome":"failure"')
 
 	def handle_shell(self, channel):
 		try:
@@ -232,6 +226,7 @@ class SSHServer:
 			channel.send(ssh_banner)
 
 			buffer = ""
+			shell = VirtualShell(SimpleSSHServer.ROOT_DIR)
 			channel.send(f"{self.bash_username}@{self.bash_hostname}:$ ")  # Send initial prompt
 			while True:
 				data = channel.recv(1024).decode("utf-8")
@@ -248,34 +243,9 @@ class SSHServer:
 							channel.send("\r\nGoodbye!\r\n")
 							return
 						elif command:
-							try:
-								# Change directory to ROOT_DIR to ensure isolation
-								os.chdir(f"{SimpleSSHServer.ROOT_DIR}/home/admin")
-
-								if command.startswith("cd "):
-									new_dir = command[3:]
-									new_path = os.path.abspath(os.path.join(SimpleSSHServer.ROOT_DIR, new_dir))
-									if new_path.startswith(SimpleSSHServer.ROOT_DIR):
-										os.chdir(new_path)
-										channel.send("\r\n")
-									else:
-										channel.send("\r\nAccess denied")
-								elif command == "pwd":
-									relative_path = os.path.relpath(os.getcwd(), SimpleSSHServer.ROOT_DIR)
-									channel.send(f"\r\n/{relative_path if relative_path != '.' else ''}")
-								else:
-									import subprocess
-
-									process = subprocess.Popen(
-										command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-									)
-									stdout, stderr = process.communicate()
-									if stdout:
-										channel.send(f"\r\n{stdout.strip()}")
-									if stderr:
-										channel.send(f"\r\n{stderr.strip()}")
-							except Exception as e:
-								channel.send(f"\r\nError executing command: {e}")
+							output = shell.run(command)
+							if output:
+								channel.send(f"\r\n{output}")
 						channel.send(f"\r\n{self.bash_username}@{self.bash_hostname}:$ ")  # Send prompt after processing command
 					else:
 						buffer += char
@@ -287,7 +257,7 @@ class SSHServer:
 
 	# Stops the SSH server.
 	def stop(self):
-		appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SSH server emulator is stopping","outcome":"success"')
+		appLogger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SSH server emulator is stopping","outcome":"success"')
 		self.running = False
 		if self.server_socket:
 			self.server_socket.close()  # Interrupt the blocking accept() call
@@ -299,7 +269,7 @@ class SSHServer:
 			self.thread.join()  # Wait for the server thread to finish
 			self.thread = None
 
-		appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SSH server emulator has stopped","outcome":"success"')
+		appLogger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SSH server emulator has stopped","outcome":"success"')
 
 	# Generates a self-signed certificate and private key if they do not already exist.
 	def get_ssh_key(self):

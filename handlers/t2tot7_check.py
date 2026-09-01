@@ -1,8 +1,14 @@
 # All credit to eightus/Cyder for this one
 
 import random
+from binascii import crc32
+from struct import pack
 from scapy.all import IP, TCP, Ether
 from utils.config import if_sock
+
+CRCPOLY = 0xEDB88320
+CRCINV = 0x5B358FD3
+FINALXOR = 0xFFFFFFFF
 
 
 def t2tot7_detect(nfq_packet, packet, fingerprint):

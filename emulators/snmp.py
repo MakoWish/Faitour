@@ -1,7 +1,6 @@
 import asyncio
 import utils.config
 from utils.logger import appLogger
-from utils.logger import honeyLogger
 from pysnmp.entity import engine, config
 from pysnmp.carrier.asyncio.dgram import udp
 from pysnmp.entity.rfc3413 import cmdrsp
@@ -62,7 +61,7 @@ class SNMPServer:
 			dispatcher = self.snmp_engine.transportDispatcher
 
 			if dispatcher is None:
-				appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"configure","reason":"Transport dispatcher not initialized","outcome":"failure"}},"error":{{"message":"Transport dispatcher not initialized"')
+				appLogger.error('"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"configure","reason":"Transport dispatcher not initialized","outcome":"failure"},"error":{"message":"Transport dispatcher not initialized"')
 
 			# Job Started signals that dispatcher will process requests
 			dispatcher.jobStarted(1)
@@ -73,12 +72,12 @@ class SNMPServer:
 	# Stop the SNMP server gracefully.
 	def stop(self):
 		try:
-			appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SNMP server emulator is stopping","outcome":"success"')
+			appLogger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SNMP server emulator is stopping","outcome":"success"')
 			self.running = False
 			dispatcher = self.snmp_engine.transportDispatcher
 
 			if dispatcher:
 				dispatcher.closeDispatcher()
-				appLogger.info(f'"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SNMP server emulator has stopped","outcome":"success"')
+				appLogger.info('"type":["end"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SNMP server emulator has stopped","outcome":"success"')
 		except Exception as e:
 			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"stop","reason":"SNMP server emulator failed to stop","outcome":"failure"}},"error":{{"message":"{e}"')

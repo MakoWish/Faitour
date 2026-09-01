@@ -72,6 +72,8 @@ def craft(packet, fingerprint):
 		ipl = int(fingerprint.probe['U1']['IPL'], 16)
 	except KeyError:
 		ipl = None
+	if ipl is not None:
+		ip.len = ipl
 
 	data = packet[Raw].load
 

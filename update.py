@@ -3,7 +3,6 @@
 import os
 import stat
 import shutil
-import requests
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -27,11 +26,13 @@ def get_local_version():
 
 # Check the version on GitHub
 def get_remote_version():
+	import requests
+
 	try:
 		response = requests.get(REPO_VERSION_URL, timeout=5)
 		response.raise_for_status()
 		return response.text.strip()
-	except requests.RequestException as e:
+	except requests.RequestException:
 		return None
 
 
@@ -59,8 +60,28 @@ def copy_with_permissions(src, dest):
     os.chmod(dest, st.st_mode)
 
 
+def version_key(version):
+	"""Compare dotted numeric versions without lexicographic ordering bugs."""
+	try:
+		return tuple(int(part) for part in version.split("."))
+	except (AttributeError, ValueError):
+		return ()
+
+
+def validate_archive_members(zip_ref, destination):
+	root = destination.resolve()
+	for member in zip_ref.infolist():
+		candidate = (root / member.filename).resolve()
+		try:
+			candidate.relative_to(root)
+		except ValueError as exc:
+			raise ValueError(f"Unsafe path in update archive: {member.filename}") from exc
+
+
 # Download and extract from GitHub
 def download_and_extract():
+	import requests
+
 	zip_path = Path("update.zip")
 	extracted_folder = None
 	try:
@@ -73,6 +94,7 @@ def download_and_extract():
 		exec_files = get_executable_files()
 
 		with ZipFile(zip_path, "r") as zip_ref:
+			validate_archive_members(zip_ref, Path.cwd())
 			archive_roots = {Path(name).parts[0] for name in zip_ref.namelist() if Path(name).parts}
 			if len(archive_roots) != 1:
 				raise ValueError("Update archive has an unexpected directory structure")
@@ -119,7 +141,7 @@ def check(silent=False):
 	if not local_version or not remote_version:
 		return False
 
-	if local_version < remote_version:
+	if version_key(local_version) < version_key(remote_version):
 		if silent:
 			return True
 		else:

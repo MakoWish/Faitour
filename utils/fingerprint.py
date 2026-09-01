@@ -496,8 +496,6 @@ class Fingerprint:
 				df_flag = 2
 			else:
 				df_flag = 0
-		else:
-			new_probe = 0
 		self.probe['U1']['DF'] = df_flag
 
 		# Update Returned IP Length Value RIPL (UDP)
@@ -609,21 +607,6 @@ class Fingerprint:
 				temp_o_value.append(('SAckOK', b''))
 
 		return temp_o_value
-
-	def strhex2int(self, string):
-		try:
-			return int(string, 16)
-		except ValueError:
-			return int('0x' + string, 16)
-
-	def swapcheck(self, min_val, max_val):
-		small = self.strhex2int(min_val)
-		big = self.strhex2int(max_val)
-
-		if small > big:
-			small, big = big, small
-
-		return small, big
 
 	def fwd_look(self, string, start):
 		output = []
