@@ -1,3 +1,7 @@
+Version 2.5.0
+Enhancement
+Introduce virtual shell, tighten web/FS handling, structured logging, config validation, update safety, and tests
+
 Version 2.4.1
 Bug Fix
 Fixed the updater's archive directory detection so updates and new default files are installed correctly.
