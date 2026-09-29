@@ -15,7 +15,7 @@ class SNMPServer:
 		self.host_port = utils.config.get_service_by_name("snmp")["port"]
 		self.snmp_engine = engine.SnmpEngine()
 		self.snmp_context = None  # Will hold the SnmpContext instance
-		self.loop = asyncio.get_event_loop()
+		self.loop = None
 
 	# Configure SNMP server with a community string and transport.
 	def configure(self):
@@ -57,6 +57,12 @@ class SNMPServer:
 	# Start the SNMP server and handle requests asynchronously.
 	def start(self):
 		try:
+			# Python 3.14 no longer creates an event loop implicitly.  The SNMP
+			# dispatcher runs in its own worker thread, so create and install the
+			# loop in that thread before configuring pysnmp's asyncio transport.
+			self.loop = asyncio.new_event_loop()
+			asyncio.set_event_loop(self.loop)
+			self.configure()
 			self.running = True
 			dispatcher = self.snmp_engine.transportDispatcher
 
@@ -68,6 +74,10 @@ class SNMPServer:
 			dispatcher.runDispatcher()
 		except Exception as e:
 			appLogger.error(f'"type":["error"],"kind":"event","category":["process"],"dataset":"faitour.application","action":"start","reason":"SNMP server emulator error","outcome":"failure"}},"error":{{"message":"{e}"')
+		finally:
+			self.running = False
+			if self.loop is not None and not self.loop.is_running():
+				self.loop.close()
 	
 	# Stop the SNMP server gracefully.
 	def stop(self):
