@@ -93,7 +93,6 @@ class ServiceEmulators:
 
 		# SNMP
 		if config.get_service_by_name("snmp")["enabled"]:
-			self.snmp_server.configure()
 			snmp_thread = threading.Thread(target=self.start_snmp_agent)
 			snmp_thread.daemon = True
 			snmp_thread.start()

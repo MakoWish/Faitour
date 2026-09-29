@@ -40,7 +40,9 @@ Enable or disable fingerprint services for any or all of the following, and cust
 
 ## Supported Operating Systems
 
-This project was built on, and has been tested on, Ubuntu 24.04 LTS. Other operating systems **_may_** work , but I have not tested any others.
+This project supports Ubuntu 24.04 LTS and Ubuntu 26.04 LTS, including their
+default Python versions (Python 3.12 and Python 3.14, respectively). Other
+operating systems **_may_** work, but are not currently supported.
 
 ## Installation
 
@@ -60,6 +62,11 @@ In an attempt to make installation easier, I have provided an install script tha
 ```bash
 sudo ./install.sh
 ```
+
+The installer uses Ubuntu packages where available and installs the remaining
+Python dependencies with `pip`. It is safe to use on both supported Ubuntu LTS
+releases. Re-run it after an operating-system upgrade so dependencies for the
+new default Python version are installed before starting Faitour.
 
 ### Configuration
 

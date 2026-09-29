@@ -23,10 +23,11 @@ install_apt_packages() {
         "python3"
         "python3-pip"
         "python3-scapy"
-        "python3-pysmi"
         "python3-pyftpdlib"
         "python3-paramiko"
         "python3-psutil"
+        "python3-requests"
+        "python3-yaml"
     )
 
     log "Updating apt package list..."
